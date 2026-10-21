@@ -1,0 +1,4913 @@
+{
+  "app": "FitLog",
+  "version": 1,
+  "exportedAt": "2026-10-21T08:10:54.192Z",
+  "user": {
+    "username": "admin",
+    "displayName": "管理员"
+  },
+  "range": {
+    "from": "2026-09-02",
+    "to": "2026-10-21",
+    "scope": "all"
+  },
+  "summary": {
+    "workouts": 28,
+    "doneSets": 348,
+    "volume": 140006,
+    "reps": 3116,
+    "exerciseCount": 17,
+    "plans": 1,
+    "avgVolumePerWorkout": 5000
+  },
+  "workouts": [
+    {
+      "id": 1,
+      "date": "2026-09-02",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.019Z",
+      "finishedAt": "2026-10-20T14:07:59.019Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4245,
+        "doneSets": 13,
+        "reps": 101,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 67.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 71.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 75.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 77,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 30,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 34,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 38,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 22.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 26.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 30.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 27.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 31.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 35.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "date": "2026-09-04",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.021Z",
+      "finishedAt": "2026-10-20T14:07:59.021Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4051,
+        "doneSets": 13,
+        "reps": 104,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 7.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 9,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 10.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 57.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 64,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 70.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 72,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 52.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 59,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 65.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 20,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 24,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 25.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "date": "2026-09-06",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.022Z",
+      "finishedAt": "2026-10-20T14:07:59.022Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 8280,
+        "doneSets": 13,
+        "reps": 101,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 77.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 84,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 90.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 92,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 67.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 74,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 80.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 107.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 119,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 130.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 47.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 54,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 60.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "date": "2026-09-08",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.024Z",
+      "finishedAt": "2026-10-20T14:07:59.024Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3045,
+        "doneSets": 13,
+        "reps": 101,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 42.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 46.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 50.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 52,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 15.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 18,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 20.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 15,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 17,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 19.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 32.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 36.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 40.5,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "date": "2026-09-09",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.025Z",
+      "finishedAt": "2026-10-20T14:07:59.025Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4586,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 66.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 70,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 74,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 75,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 29,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 32.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 36.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 21.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 25,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 29,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 26.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 30,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 34,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "date": "2026-09-11",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.028Z",
+      "finishedAt": "2026-10-20T14:07:59.028Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4338,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 6.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 7.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 9,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 56.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 62.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 69,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 70,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 51.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 57.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 64,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 19,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 22.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 24,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "date": "2026-09-13",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.029Z",
+      "finishedAt": "2026-10-20T14:07:59.029Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 9123,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 76.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 82.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 89,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 90,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 66.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 72.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 79,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 106.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 117.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 129,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 46.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 52.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 59,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "date": "2026-09-15",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.030Z",
+      "finishedAt": "2026-10-20T14:07:59.030Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3250,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 41.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 45,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 49,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 50,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 14.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 16.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 19,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 14,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 15.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 18,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 31.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 35,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 39,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "date": "2026-09-16",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.031Z",
+      "finishedAt": "2026-10-20T14:07:59.031Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4400,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 65,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 68.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 72,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 73,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 27.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 31,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 34.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 20,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 23.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 27,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 25,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 28.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 32,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "date": "2026-09-18",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.032Z",
+      "finishedAt": "2026-10-20T14:07:59.032Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4151,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 6,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 7,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 55,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 61,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 67,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 68,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 50,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 56,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 62,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 17.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 21,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 22,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "date": "2026-09-20",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.035Z",
+      "finishedAt": "2026-10-20T14:07:59.035Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 8937,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 75,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 81,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 87,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 88,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 65,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 71,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 77,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 105,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 116,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 127,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 45,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 51,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 57,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "date": "2026-09-22",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.036Z",
+      "finishedAt": "2026-10-20T14:07:59.036Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3064,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 40,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 43.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 47,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 48,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 13,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 15,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 17,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 12.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 14,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 16,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 30,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 33.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 37,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "date": "2026-09-23",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.038Z",
+      "finishedAt": "2026-10-20T14:07:59.038Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4250,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 64,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 67,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 70.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 71,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 26.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 29.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 33,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 19,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 22,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 25.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 24,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 27,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 30.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "date": "2026-09-25",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.039Z",
+      "finishedAt": "2026-10-20T14:07:59.039Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3999,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 4,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 4.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 5.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 54,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 59.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 65.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 66,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 49,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 54.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 60.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 16.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 19.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 20.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "date": "2026-09-27",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.040Z",
+      "finishedAt": "2026-10-20T14:07:59.040Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 8787,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 74,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 79.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 85.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 86,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 64,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 69.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 75.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 104,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 114.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 125.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 44,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 49.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 55.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "date": "2026-09-29",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.041Z",
+      "finishedAt": "2026-10-20T14:07:59.041Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 2914,
+        "doneSets": 13,
+        "reps": 113,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 39,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 42,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 45.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 46,
+              "reps": 5,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 12,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 13.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 15.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 11.5,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 12.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 14.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 29,
+              "reps": 11,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 32,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 35.5,
+              "reps": 7,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "date": "2026-09-30",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.042Z",
+      "finishedAt": "2026-10-20T14:07:59.042Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4551,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 62.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 65.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 68.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 69,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 25,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 28,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 31,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 17.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 20.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 23.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 22.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 25.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 28.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "date": "2026-10-02",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.043Z",
+      "finishedAt": "2026-10-20T14:07:59.043Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4260,
+        "doneSets": 13,
+        "reps": 123,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 2.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 3,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 3.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 52.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 58,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 63.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 64,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 47.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 53,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 58.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 15,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 18,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 18.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "date": "2026-10-04",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.046Z",
+      "finishedAt": "2026-10-20T14:07:59.046Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 9606,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 72.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 78,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 83.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 84,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 62.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 68,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 73.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 102.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 113,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 123.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 42.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 48,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 53.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "date": "2026-10-06",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.048Z",
+      "finishedAt": "2026-10-20T14:07:59.048Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3054,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 37.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 40.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 43.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 44,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 10.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 12,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 13.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 10,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 11,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 12.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 27.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 30.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 33.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "date": "2026-10-07",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.050Z",
+      "finishedAt": "2026-10-20T14:07:59.050Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4383,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 61.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 64,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 67,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 67,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 24,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 26.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 29.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 16.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 19,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 22,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 21.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 24,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 27,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "date": "2026-10-09",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.051Z",
+      "finishedAt": "2026-10-20T14:07:59.051Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4095,
+        "doneSets": 13,
+        "reps": 123,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 1.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 1.5,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 2,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 51.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 56.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 62,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 62,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 46.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 51.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 57,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 14,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 16.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 17,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "date": "2026-10-11",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.052Z",
+      "finishedAt": "2026-10-20T14:07:59.052Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 9438,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 71.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 76.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 82,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 82,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 61.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 66.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 72,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 101.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 111.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 122,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 41.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 46.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 52,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "date": "2026-10-13",
+      "title": "肩 + 手臂",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.054Z",
+      "finishedAt": "2026-10-20T14:07:59.054Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 1908,
+        "doneSets": 10,
+        "reps": 102,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1457",
+          "name": "杠铃站姿宽握肩推",
+          "en": "barbell standing wide military press",
+          "equipment": "杠铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 36.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 39,
+              "reps": 10,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 42,
+              "reps": 8,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 42,
+              "reps": 6,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0334",
+          "name": "哑铃侧平举",
+          "en": "dumbbell lateral raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 9.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 10.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 12,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2292",
+          "name": "哑铃俯身后束举",
+          "en": "dumbbell rear delt raise",
+          "equipment": "哑铃",
+          "target": "三角肌",
+          "category": "肩部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 9,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 9.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 11,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0031",
+          "name": "杠铃弯举",
+          "en": "barbell curl",
+          "equipment": "杠铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 26.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 29,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 32,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "date": "2026-10-14",
+      "title": "胸 + 三头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.055Z",
+      "finishedAt": "2026-10-20T14:07:59.055Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 4175,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0025",
+          "name": "杠铃卧推",
+          "en": "barbell bench press",
+          "equipment": "杠铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 60,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 62.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 65,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 65,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0314",
+          "name": "哑铃上斜卧推",
+          "en": "dumbbell incline bench press",
+          "equipment": "哑铃",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 22.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 25,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 27.5,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0155",
+          "name": "绳索夹胸",
+          "en": "cable cross-over variation",
+          "equipment": "绳索",
+          "target": "胸大肌",
+          "category": "胸部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 15,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 17.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 20,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0201",
+          "name": "绳索下压",
+          "en": "cable pushdown",
+          "equipment": "绳索",
+          "target": "肱三头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 20,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 22.5,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 25,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "date": "2026-10-16",
+      "title": "背 + 二头",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.056Z",
+      "finishedAt": "2026-10-20T14:07:59.056Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 3890,
+        "doneSets": 13,
+        "reps": 123,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "0652",
+          "name": "引体向上",
+          "en": "pull-up",
+          "equipment": "自重",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 0,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 0,
+              "reps": 9,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 0,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0027",
+          "name": "杠铃俯身划船",
+          "en": "barbell bent over row",
+          "equipment": "杠铃",
+          "target": "上背",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 50,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 55,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 60,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 60,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "2330",
+          "name": "绳索高位下拉（全幅度）",
+          "en": "cable lat pulldown full range of motion",
+          "equipment": "绳索",
+          "target": "背阔肌",
+          "category": "背部",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 45,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 50,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 55,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0294",
+          "name": "哑铃弯举",
+          "en": "dumbbell biceps curl",
+          "equipment": "哑铃",
+          "target": "肱二头肌",
+          "category": "上臂",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 12.5,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 15,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 15,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "date": "2026-10-18",
+      "title": "腿 + 核心",
+      "notes": "",
+      "startedAt": "2026-10-20T14:07:59.057Z",
+      "finishedAt": "2026-10-20T14:07:59.057Z",
+      "durationMin": null,
+      "planId": null,
+      "planDay": null,
+      "stats": {
+        "volume": 9230,
+        "doneSets": 13,
+        "reps": 126,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 70,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 75,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 80,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 80,
+              "reps": 6,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0085",
+          "name": "杠铃罗马尼亚硬拉",
+          "en": "barbell romanian deadlift",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 60,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 65,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 70,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 100,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 110,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 120,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 40,
+              "reps": 12,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 45,
+              "reps": 10,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 50,
+              "reps": 8,
+              "done": true,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "date": "2026-10-21",
+      "title": "下肢",
+      "notes": "股四头 / 臀 / 腘绳",
+      "startedAt": "2026-10-21T07:38:34.736Z",
+      "finishedAt": null,
+      "durationMin": null,
+      "planId": 5,
+      "planDay": 1,
+      "stats": {
+        "volume": 0,
+        "doneSets": 0,
+        "reps": 0,
+        "exerciseCount": 4
+      },
+      "exercises": [
+        {
+          "exerciseId": "1461",
+          "name": "杠铃深蹲",
+          "en": "barbell full squat",
+          "equipment": "杠铃",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "蹲至大腿平行，膝盖沿脚尖方向",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 0,
+              "reps": 6,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 0,
+              "reps": 6,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 0,
+              "reps": 6,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 0,
+              "reps": 6,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "1464",
+          "name": "45° 腿举机",
+          "en": "sled 45в° leg press",
+          "equipment": "雪橇机",
+          "target": "臀肌",
+          "category": "上腿",
+          "note": "膝盖不锁死，控制离心",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 0,
+              "reps": 10,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 0,
+              "reps": 10,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 0,
+              "reps": 10,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0599",
+          "name": "坐姿腿弯举",
+          "en": "lever seated leg curl",
+          "equipment": "固定器械",
+          "target": "腘绳肌",
+          "category": "上腿",
+          "note": "髋部贴紧垫面不要抬起",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 0,
+              "reps": 12,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 0,
+              "reps": 12,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 0,
+              "reps": 12,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "exerciseId": "0594",
+          "name": "坐姿提踵",
+          "en": "lever seated calf raise",
+          "equipment": "固定器械",
+          "target": "小腿",
+          "category": "小腿",
+          "note": "顶峰停 2 秒",
+          "sets": [
+            {
+              "index": 1,
+              "weight": 0,
+              "reps": 15,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 2,
+              "weight": 0,
+              "reps": 15,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 3,
+              "weight": 0,
+              "reps": 15,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            },
+            {
+              "index": 4,
+              "weight": 0,
+              "reps": 15,
+              "done": false,
+              "kind": "normal",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": 5,
+      "title": "四分化增肌 · 每周四练",
+      "goal": "增肌",
+      "level": "中级",
+      "weeks": 8,
+      "daysPerWeek": 4,
+      "summary": "推 / 拉 / 腿 / 肩臂四分化，每周四练。复合动作放前面做 4 组大重量，孤立动作放后面补量；每两周主项加 2.5kg，第四周减量一次。",
+      "source": "manual",
+      "active": true,
+      "createdAt": "2026-10-20T15:11:50.928Z",
+      "days": [
+        {
+          "name": "上肢推",
+          "focus": "胸 / 肩 / 肱三头",
+          "weekday": 2,
+          "exercises": [
+            {
+              "exerciseId": "0025",
+              "name": "杠铃卧推",
+              "targetZh": "胸大肌",
+              "equipZh": "杠铃",
+              "sets": 4,
+              "reps": "6-8",
+              "rest": "120s",
+              "note": "肩胛后收，杠铃触胸后推起"
+            },
+            {
+              "exerciseId": "0603",
+              "name": "器械肩推",
+              "targetZh": "三角肌",
+              "equipZh": "固定器械",
+              "sets": 3,
+              "reps": "8-10",
+              "rest": "90s",
+              "note": "肘部略前于身体，避免耸肩"
+            },
+            {
+              "exerciseId": "0155",
+              "name": "绳索夹胸",
+              "targetZh": "胸大肌",
+              "equipZh": "绳索",
+              "sets": 3,
+              "reps": "12-15",
+              "rest": "60s",
+              "note": "顶峰收缩 1 秒"
+            },
+            {
+              "exerciseId": "0201",
+              "name": "绳索下压",
+              "targetZh": "肱三头肌",
+              "equipZh": "绳索",
+              "sets": 3,
+              "reps": "10-12",
+              "rest": "60s",
+              "note": "大臂固定，只动小臂"
+            }
+          ]
+        },
+        {
+          "name": "下肢",
+          "focus": "股四头 / 臀 / 腘绳",
+          "weekday": 4,
+          "exercises": [
+            {
+              "exerciseId": "1461",
+              "name": "杠铃深蹲",
+              "targetZh": "臀肌",
+              "equipZh": "杠铃",
+              "sets": 4,
+              "reps": "6-8",
+              "rest": "150s",
+              "note": "蹲至大腿平行，膝盖沿脚尖方向"
+            },
+            {
+              "exerciseId": "1464",
+              "name": "45° 腿举机",
+              "targetZh": "臀肌",
+              "equipZh": "雪橇机",
+              "sets": 3,
+              "reps": "10-12",
+              "rest": "90s",
+              "note": "膝盖不锁死，控制离心"
+            },
+            {
+              "exerciseId": "0599",
+              "name": "坐姿腿弯举",
+              "targetZh": "腘绳肌",
+              "equipZh": "固定器械",
+              "sets": 3,
+              "reps": "12-15",
+              "rest": "60s",
+              "note": "髋部贴紧垫面不要抬起"
+            },
+            {
+              "exerciseId": "0594",
+              "name": "坐姿提踵",
+              "targetZh": "小腿",
+              "equipZh": "固定器械",
+              "sets": 4,
+              "reps": "15-20",
+              "rest": "45s",
+              "note": "顶峰停 2 秒"
+            }
+          ]
+        },
+        {
+          "name": "上肢拉",
+          "focus": "背 / 肱二头",
+          "weekday": 6,
+          "exercises": [
+            {
+              "exerciseId": "0032",
+              "name": "杠铃硬拉",
+              "targetZh": "臀肌",
+              "equipZh": "杠铃",
+              "sets": 3,
+              "reps": "5",
+              "rest": "180s",
+              "note": "杠铃贴腿，背部中立"
+            },
+            {
+              "exerciseId": "2330",
+              "name": "绳索高位下拉（全幅度）",
+              "targetZh": "背阔肌",
+              "equipZh": "绳索",
+              "sets": 4,
+              "reps": "8-10",
+              "rest": "90s",
+              "note": "先沉肩再下拉"
+            },
+            {
+              "exerciseId": "1350",
+              "name": "坐姿划船",
+              "targetZh": "上背",
+              "equipZh": "固定器械",
+              "sets": 3,
+              "reps": "10-12",
+              "rest": "90s",
+              "note": "肩胛先收再拉"
+            },
+            {
+              "exerciseId": "0294",
+              "name": "哑铃弯举",
+              "targetZh": "肱二头肌",
+              "equipZh": "哑铃",
+              "sets": 3,
+              "reps": "12",
+              "rest": "60s",
+              "note": "肘部固定在体侧"
+            }
+          ]
+        },
+        {
+          "name": "肩 + 手臂",
+          "focus": "肩 / 手臂 / 核心",
+          "weekday": 7,
+          "exercises": [
+            {
+              "exerciseId": "0334",
+              "name": "哑铃侧平举",
+              "targetZh": "三角肌",
+              "equipZh": "哑铃",
+              "sets": 3,
+              "reps": "12-15",
+              "rest": "60s",
+              "note": "小重量，肘微屈"
+            },
+            {
+              "exerciseId": "0031",
+              "name": "杠铃弯举",
+              "targetZh": "肱二头肌",
+              "equipZh": "杠铃",
+              "sets": 3,
+              "reps": "10-12",
+              "rest": "60s",
+              "note": "离心 3 秒"
+            },
+            {
+              "exerciseId": "0201",
+              "name": "绳索下压",
+              "targetZh": "肱三头肌",
+              "equipZh": "绳索",
+              "sets": 3,
+              "reps": "12",
+              "rest": "60s",
+              "note": "控制离心"
+            },
+            {
+              "exerciseId": "2135",
+              "name": "负重平板支撑",
+              "targetZh": "腹肌",
+              "equipZh": "负重",
+              "sets": 3,
+              "reps": "45s",
+              "rest": "60s",
+              "note": "腰椎中立，臀腹收紧"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

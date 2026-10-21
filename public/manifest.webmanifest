@@ -1,0 +1,12 @@
+{
+  "name": "FitLog · 训练记录",
+  "short_name": "FitLog",
+  "description": "私人健身训练记录：动作库、组数重量、统计与 AI 计划",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f6f7",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
