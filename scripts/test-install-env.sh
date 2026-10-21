@@ -195,6 +195,58 @@ check "PORT 环境变量同步进 .env" "$(cat "$WORK/env1.txt")" "1"
 )
 check ".env 没有 PORT 时追加进去" "$(cat "$WORK/env2.txt")" "1"
 
+# ---------------------------------------------------------------- 端口迁移
+printf '\n[8] 端口冲突与高位端口\n'
+check "跳过被占端口" \
+  "$( ( load; HIGH_PORT_BASE=18473; port_in_use() { [ "$1" = "18473" ]; }; free_high_port ) )" "18474"
+check "连续被占时往后找" \
+  "$( ( load; HIGH_PORT_BASE=19000; port_in_use() { case "$1" in 19000|19001|19002) return 0;; *) return 1;; esac; }; free_high_port ) )" "19003"
+check "整段被占 → 失败" \
+  "$( ( load; HIGH_PORT_BASE=19100; port_in_use() { return 0; }; free_high_port >/dev/null; echo $? ) )" "1"
+
+( load
+  mkdir -p "$WORK/port1"; INSTALL_DIR="$WORK/port1"
+  printf 'PORT=8080\nHOST=127.0.0.1\n' > "$INSTALL_DIR/.env"
+  set_env_port 18473
+  grep -c '^PORT=18473$' "$INSTALL_DIR/.env" > "$WORK/port1.txt"
+  printf '%s' "$PORT" > "$WORK/port1-var.txt"
+)
+check "set_env_port 改写 .env"   "$(cat "$WORK/port1.txt")" "1"
+check "set_env_port 同步变量"    "$(cat "$WORK/port1-var.txt")" "18473"
+
+( load
+  mkdir -p "$WORK/port2"; INSTALL_DIR="$WORK/port2"
+  printf 'HOST=127.0.0.1\n' > "$INSTALL_DIR/.env"
+  set_env_port 18480
+  grep -c '^PORT=18480$' "$INSTALL_DIR/.env" > "$WORK/port2.txt"
+)
+check "没有 PORT 行时追加" "$(cat "$WORK/port2.txt")" "1"
+
+( load
+  mkdir -p "$WORK/port3"; INSTALL_DIR="$WORK/port3"
+  printf 'PORT=19400\n' > "$INSTALL_DIR/.env"
+  PORT=19400; HIGH_PORT_BASE=19400
+  port_in_use() { return 1; }
+  move_to_free_port 19400 >/dev/null 2>&1
+  echo $? > "$WORK/port3-rc.txt"
+  cp "$INSTALL_DIR/.env" "$WORK/port3-env.txt"
+)
+check "端口空闲 → 不迁移" "$(cat "$WORK/port3-rc.txt")" "0"
+check ".env 保持原端口"   "$(grep -c '^PORT=19400$' "$WORK/port3-env.txt")" "1"
+
+( load
+  mkdir -p "$WORK/port4"; INSTALL_DIR="$WORK/port4"
+  printf 'PORT=19500\n' > "$INSTALL_DIR/.env"
+  PORT=19500; HIGH_PORT_BASE=19501
+  port_in_use() { [ "$1" = "19500" ]; }   # 只有 19500 被占
+  is_fitlog_on() { return 1; }            # 占用者不是 FitLog
+  move_to_free_port 19500 >/dev/null 2>&1
+  echo $? > "$WORK/port4-rc.txt"
+  if grep -q '^PORT=19501$' "$INSTALL_DIR/.env"; then echo 1; else echo 0; fi > "$WORK/port4-env.txt"
+)
+check "被占用 → 自动换端口" "$(cat "$WORK/port4-rc.txt")" "0"
+check "新端口写回 .env"     "$(cat "$WORK/port4-env.txt")" "1"
+
 # ---------------------------------------------------------------- 汇总
 printf '\n== 结果 ==\n通过 %d 项，失败 %d 项\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] && { printf '全部通过 ✓\n\n'; exit 0; }

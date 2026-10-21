@@ -7,6 +7,7 @@
 #   ./install.sh update       拉取新版本并重启
 #   ./install.sh status       查看运行状态
 #   ./install.sh restart      重启
+#   ./install.sh port [端口]  换端口（不填则自动挑一个空闲高位端口）
 #   ./install.sh backup       备份数据库与配置
 #   ./install.sh log          查看日志
 #   ./install.sh doctor       环境自检（装不上时先跑这个）
@@ -20,6 +21,7 @@
 # 环境变量：
 #   FITLOG_DIR            安装目录，默认脚本所在目录
 #   PORT / ADMIN_USERNAME / ADMIN_PASSWORD   首次生成 .env 时使用
+#   HIGH_PORT_BASE        端口冲突时自动改用高位端口的起点，默认 18473
 #   NODE_VERSION          自动安装 Node 的大版本，默认 22
 #   NODE_MIRROR           逗号或空格分隔的 Node 下载镜像
 #   NPM_MIRROR            官方 npm 源失败后使用的镜像，默认 registry.npmmirror.com
@@ -32,6 +34,8 @@ APP_NAME="FitLog"
 SERVICE_NAME="fitlog"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 DEFAULT_PORT="${DEFAULT_PORT:-8080}"   # 兜底端口；用户传的 PORT 单独处理，避免两者混淆
+# 8080 常被 NAS / 面板 / 其它容器占用，冲突时从这里开始找空闲高位端口
+HIGH_PORT_BASE="${HIGH_PORT_BASE:-18473}"
 
 # 脚本所在目录即安装目录（支持从任意位置调用）
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -110,6 +114,92 @@ port_in_use() {   # $1=端口；有东西在监听就返回 0
   fi
   (exec 3<>"/dev/tcp/127.0.0.1/${port}") >/dev/null 2>&1 && return 0
   return 1
+}
+
+is_fitlog_on() {   # $1=端口；该端口上跑的是不是 FitLog
+  need_cmd curl || return 1
+  curl -fsS --max-time 3 "http://127.0.0.1:${1}/api/health" 2>/dev/null | grep -q '"ok"'
+}
+
+# 从 HIGH_PORT_BASE 起找一个没人监听的端口（最多往后试 30 个）
+free_high_port() {
+  local p="$HIGH_PORT_BASE" i=0
+  while [ "$i" -lt 30 ]; do
+    port_in_use "$p" || { printf '%s' "$p"; return 0; }
+    p=$((p + 1)); i=$((i + 1))
+  done
+  return 1
+}
+
+set_env_port() {   # $1=新端口：写回 .env（systemd / 重启后都生效）
+  local file="$INSTALL_DIR/.env" p="$1"
+  mkdir -p "$INSTALL_DIR"
+  [ -f "$file" ] || : > "$file"
+  if grep -qE '^[[:space:]]*PORT=' "$file"; then
+    sed -i.bak "s|^[[:space:]]*PORT=.*|PORT=${p}|" "$file" && rm -f "$file.bak"
+  else
+    printf '\nPORT=%s\n' "$p" >> "$file"
+  fi
+  chmod 600 "$file" 2>/dev/null || true
+  PORT="$p"          # 让本次运行的 app_port 立刻读到新值
+}
+
+# 启动/重启失败时，把「为什么」直接摆出来，而不是只留一句「没等到响应」
+diagnose_start_failure() {
+  local port="$1"
+  title "启动失败的原因"
+  if port_in_use "$port"; then
+    if is_fitlog_on "$port"; then
+      warn "端口 $port 上仍有 FitLog 在响应（可能是重复进程 / 旧实例没退干净）"
+    else
+      warn "端口 $port 被其它程序占用，FitLog 大概率是启动即退出（EADDRINUSE）"
+    fi
+    if need_cmd ss; then
+      ss -lntp 2>/dev/null | grep -E "[:.]${port}[[:space:]]" | head -n 3 | sed 's/^/    /'
+    fi
+  else
+    warn "端口 $port 没有任何进程在监听 —— 进程启动后就退出了"
+  fi
+
+  say "  ${C_DIM}最近日志：${C_RESET}"
+  if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
+    as_root journalctl -u "$SERVICE_NAME" -n 20 --no-pager 2>/dev/null | sed 's/^/    /'
+  fi
+  if [ -f "$INSTALL_DIR/data/fitlog.log" ]; then
+    tail -n 20 "$INSTALL_DIR/data/fitlog.log" | sed 's/^/    /'
+  fi
+
+  say ""
+  say "  换一个不常用的高位端口再试："
+  say "    ${C_BOLD}./install.sh port${C_RESET}          # 自动挑一个空闲高位端口"
+  say "    ${C_BOLD}./install.sh port 18473${C_RESET}    # 或者自己指定"
+}
+
+# 端口被别的程序占着就自动挪到高位端口；返回 1 表示挪不了
+move_to_free_port() {
+  local port="$1" candidate
+  if ! port_in_use "$port"; then return 0; fi
+  if is_fitlog_on "$port"; then
+    # 端口上是 FitLog：可能是刚停还没释放，等一下再看
+    sleep 1
+    port_in_use "$port" || return 0
+    warn "端口 $port 上仍有 FitLog 在响应，先尝试强制停掉旧实例"
+    if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
+      as_root systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
+    local stale; stale="$(running_pid || true)"
+    [ -n "$stale" ] && kill -9 "$stale" 2>/dev/null || true
+    sleep 1
+    port_in_use "$port" || return 0
+  fi
+  candidate="$(free_high_port)" || {
+    warn "高位端口 ${HIGH_PORT_BASE}–$((HIGH_PORT_BASE + 29)) 全被占用"
+    return 1
+  }
+  warn "端口 $port 被占用，自动改用高位端口 $candidate"
+  set_env_port "$candidate"
+  ok "已写入 .env：PORT=$candidate"
+  return 0
 }
 
 # ---------------------------------------------------------------- 系统组件自动补装
@@ -676,13 +766,13 @@ EOF
 }
 
 start_app() {
-  cd "$INSTALL_DIR" || die "无法进入 $INSTALL_DIR"
+  cd "$INSTALL_DIR" || { warn "无法进入 $INSTALL_DIR"; return 1; }
   if [ "$HAS_SYSTEMD" -eq 1 ]; then
     write_unit
     as_root systemctl enable "$SERVICE_NAME" >/dev/null 2>&1 || true
-    as_root systemctl restart "$SERVICE_NAME" || die "启动失败，执行 journalctl -u $SERVICE_NAME -n 50 查看原因"
+    as_root systemctl restart "$SERVICE_NAME" || { warn "systemctl 启动失败"; return 1; }
     ok "已通过 systemd 启动：$SERVICE_NAME"
-    return
+    return 0
   fi
 
   # 没有 systemd（macOS / 容器）：nohup 后台运行
@@ -691,12 +781,14 @@ start_app() {
   nohup node $env_args server/index.js >>"$INSTALL_DIR/data/fitlog.log" 2>&1 &
   local new_pid=$!
   printf '%s' "$new_pid" > "$(pid_file)"
-  sleep 1
+  sleep 2
   if kill -0 "$new_pid" 2>/dev/null; then
     ok "已后台启动（PID $new_pid），日志：data/fitlog.log"
-  else
-    die "启动失败，查看 $INSTALL_DIR/data/fitlog.log"
+    return 0
   fi
+  rm -f "$(pid_file)"
+  warn "进程启动后立刻退出了（PID $new_pid）"
+  return 1
 }
 
 stop_app() {
@@ -718,14 +810,18 @@ stop_app() {
 
 restart_app() {
   title "重启服务"
-  if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
-    as_root systemctl restart "$SERVICE_NAME" || die "重启失败"
-    ok "已重启"
-  else
-    stop_app
-    start_app
+  stop_app
+  # 旧实例退干净后端口仍被别的程序占着 → 自动换高位端口（写回 .env，systemd 也生效）
+  move_to_free_port "$(app_port)" || return 1
+  if ! start_app; then
+    diagnose_start_failure "$(app_port)"
+    return 1
   fi
-  wait_health
+  if wait_health; then
+    return 0
+  fi
+  diagnose_start_failure "$(app_port)"
+  return 1
 }
 
 wait_health() {
@@ -795,21 +891,25 @@ cmd_install() {
       warn "systemd 服务已在运行，继续安装会重启它"
     else
       warn "端口 ${port} 已被其它程序占用"
-      say "  换端口重跑：PORT=9000 ./install.sh install --yes"
-      say "  或先停掉占用 ${port} 的程序（./install.sh status 可看当前状态）"
-      die "端口冲突，安装中止"
+      move_to_free_port "$port" || die "端口冲突且找不到空闲高位端口，请手动指定：PORT=18473 ./install.sh install --yes"
+      ok "安装将使用端口 $(app_port)"
     fi
   fi
 
   install_deps
   prepare_data
-  start_app
-  if wait_health; then print_access; fi
+  stop_app                       # 清掉可能的旧实例，保证端口和进程都是干净的
+  move_to_free_port "$(app_port)" || true
+  if start_app && wait_health; then
+    print_access
+  else
+    diagnose_start_failure "$(app_port)"
+  fi
   title "完成"
-  if [ -n "$AUTO_INSTALLED" ]; then
+  if [ -n "${AUTO_INSTALLED:-}" ]; then
     say "本次自动补装：${AUTO_INSTALLED}"
   fi
-  say "常用命令： ./install.sh update | restart | status | backup | log | doctor"
+  say "常用命令： ./install.sh update | restart | status | port | backup | log | doctor"
 }
 
 cmd_update() {
@@ -834,8 +934,7 @@ cmd_update() {
   ensure_build_tools || true
   install_deps
   prepare_data
-  restart_app
-  print_access
+  restart_app && print_access
 }
 
 cmd_status() {
@@ -888,8 +987,40 @@ cmd_status() {
 
 cmd_restart() {
   check_node
-  restart_app
-  print_access
+  restart_app && print_access
+}
+
+cmd_port() {
+  local target="${1:-}"
+  title "修改端口"
+
+  if [ -z "$target" ]; then
+    target="$(free_high_port)" || die "找不到空闲的高位端口，请手动指定：./install.sh port 18473"
+    say "自动挑选空闲高位端口：$target"
+  fi
+  case "$target" in
+    ''|*[!0-9]*) die "端口必须是数字：$target" ;;
+  esac
+  if [ "$target" -lt 1024 ]; then
+    die "1024 以下的端口需要 root 权限，请用 1024 以上（推荐 18473 这类高位端口）"
+  fi
+  if [ "$target" -gt 65535 ]; then
+    die "端口不能超过 65535"
+  fi
+  if port_in_use "$target"; then
+    warn "端口 $target 已有程序在监听"
+    say "  试试不带参数让它自己找：./install.sh port"
+    die "端口不可用"
+  fi
+
+  local old; old="$(app_port)"
+  set_env_port "$target"
+  ok "端口 $old → $target（已写入 .env，重启后不会回退）"
+
+  if restart_app; then
+    print_access
+    say "  ${C_DIM}用了 nginx / Caddy 反代的话，把 proxy_pass 改成 127.0.0.1:${target} 再 reload${C_RESET}"
+  fi
 }
 
 cmd_backup() {
@@ -1066,11 +1197,12 @@ ${C_BOLD}${APP_NAME} 管理菜单${C_RESET}   ${C_DIM}${INSTALL_DIR}${C_RESET}
   4) 重启服务
   5) 备份数据
   6) 查看日志
-  7) 环境自检            ${C_DIM}装不上时先跑这个，逐项告诉你缺什么${C_RESET}
-  8) 卸载
+  7) 修改端口            ${C_DIM}端口被占用时换到不常用的高位端口${C_RESET}
+  8) 环境自检            ${C_DIM}装不上时先跑这个，逐项告诉你缺什么${C_RESET}
+  9) 卸载
   0) 退出
 EOF
-    printf '请选择 [0-8]: '
+    printf '请选择 [0-9]: '
     local choice
     read -r choice || choice="0"
     case "$choice" in
@@ -1080,8 +1212,9 @@ EOF
       4) cmd_restart ;;
       5) cmd_backup ;;
       6) cmd_log ;;
-      7) cmd_doctor ;;
-      8) cmd_uninstall ;;
+      7) cmd_port ;;
+      8) cmd_doctor ;;
+      9) cmd_uninstall ;;
       0|"") say "已退出"; return 0 ;;
       *) warn "无效选择：$choice" ;;
     esac
@@ -1097,10 +1230,15 @@ for arg in "$@"; do
     --purge) PURGE=1 ;;
     --no-system-install) NO_SYSTEM_INSTALL=1 ;;
     install|update|status|restart|backup|log|logs|doctor|uninstall|menu) COMMAND="$arg" ;;
+    port|set-port) COMMAND="port" ;;
     -h|--help)
-      sed -n '2,28p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
+      sed -n '2,/^set -uo pipefail/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
       exit 0 ;;
-    *) die "未知参数：$arg（用 --help 查看用法）" ;;
+    '') die "参数为空（用 --help 查看用法）" ;;
+    *[!0-9]*) die "未知参数：$arg（用 --help 查看用法）" ;;
+    *)  # 纯数字：只允许跟在 port 后面
+      if [ "$COMMAND" = "port" ] && [ -z "${PORT_ARG:-}" ]; then PORT_ARG="$arg"
+      else die "未知参数：$arg（用 --help 查看用法）"; fi ;;
   esac
 done
 
@@ -1114,6 +1252,7 @@ case "$COMMAND" in
   backup) cmd_backup ;;
   log) cmd_log ;;
   doctor) cmd_doctor ;;
+  port) cmd_port "${PORT_ARG:-}" ;;
   uninstall) cmd_uninstall ;;
   menu|"") menu ;;
 esac

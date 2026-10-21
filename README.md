@@ -171,8 +171,9 @@ FitLog 管理菜单   /opt/fitlog
   4) 重启服务
   5) 备份数据
   6) 查看日志
-  7) 环境自检            装不上时先跑这个，逐项告诉你缺什么
-  8) 卸载
+  7) 修改端口            端口被占用时换到不常用的高位端口
+  8) 环境自检            装不上时先跑这个，逐项告诉你缺什么
+  9) 卸载
   0) 退出
 ```
 
@@ -188,7 +189,8 @@ FitLog 管理菜单   /opt/fitlog
 | 装完不一定能用 | 最后用 `node -e "require('better-sqlite3')"` 真加载一次，加载不了就继续修，不糊弄 |
 
 - **安装**：`ensure_base_tools → ensure_node → ensure_build_tools → .env → 端口检查 → npm install → 建库 → 启动 → 健康检查`。没有 `.env` 就用 `openssl` 生成随机管理员密码并 `chmod 600`；有 systemd 就装成 `fitlog.service` 并 `enable --now`，没有就 `nohup` 后台跑并写 `.fitlog.pid`；最后轮询 `/api/health` 最多 20 秒，打印访问地址与密码，并汇报「本次自动补装了什么」。
-- **端口冲突不会假成功**：启动前先探端口，是自己在跑就重启，被别的程序占着就报错并告诉你换端口的命令。
+- **端口冲突自动让路**：启动前先探端口。是自己在跑就重启；被别的程序占着（NAS / 面板很常见）就自动挑一个空闲高位端口（从 `18473` 开始），写回 `.env` 再启动，不会出现「装好了却打不开」。想指定端口用 `./install.sh port 18473`。
+- **启动失败会告诉你原因**：健康检查没通过时，脚本自动打印端口占用情况（`ss -lntp`）+ 最近 20 行日志（systemd 走 `journalctl`），并给出下一步命令，而不是只留一句「没等到响应」。
 - **更新**：`git pull --ff-only` → 补工具链 → 重装依赖 → 重启 → 健康检查；`.env` 与 `data/fitlog.db` 不动。
 - **自检**：`./install.sh doctor` 逐项检查系统 / Node / npm / 编译工具链 / curl / 端口 / node_modules / 原生模块 / 数据库 / `.env` 权限 / 磁盘，最后给结论。
 - **状态**：systemd / 进程状态 + `/api/health` 健康检查 + 数据库体积 + 只读查库统计「账号 / 训练 / 动态 / 留言」条数。
@@ -204,6 +206,8 @@ bash install.sh install     # 安装并启动（缺依赖会自动装）
 bash install.sh update      # 拉取新版本并重启
 bash install.sh status      # 运行状态
 bash install.sh restart     # 重启
+bash install.sh port        # 换端口（自动挑空闲高位端口）
+bash install.sh port 18473  # 换到指定端口
 bash install.sh backup      # 备份
 bash install.sh log         # 最近 60 行日志
 bash install.sh doctor      # 环境自检
@@ -211,7 +215,7 @@ bash install.sh uninstall   # 卸载（默认保留数据）
 bash install.sh uninstall --purge --yes   # 连数据一起删，不确认
 ```
 
-> 可用环境变量：`FITLOG_DIR`（安装目录）、`PORT`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`NODE_VERSION`（自动装 Node 的大版本，默认 22）、`NODE_MIRROR`（Node 下载镜像）、`NPM_MIRROR`（npm 备用镜像）。
+> 可用环境变量：`FITLOG_DIR`（安装目录）、`PORT`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`HIGH_PORT_BASE`（冲突时自动换端口的起点，默认 `18473`）、`NODE_VERSION`（自动装 Node 的大版本，默认 22）、`NODE_MIRROR`（Node 下载镜像）、`NPM_MIRROR`（npm 备用镜像）。
 > 例：`PORT=9000 ADMIN_PASSWORD='换个强密码' bash install.sh install --yes`
 > 服务器不允许脚本动系统包时：`bash install.sh install --no-system-install`，它只报告缺什么、不动系统。
 

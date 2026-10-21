@@ -133,8 +133,9 @@ FitLog 管理菜单   /opt/fitlog
   4) 重启服务
   5) 备份数据
   6) 查看日志
-  7) 环境自检            装不上时先跑这个，逐项告诉你缺什么
-  8) 卸载
+  7) 修改端口            端口被占用时换到不常用的高位端口
+  8) 环境自检            装不上时先跑这个，逐项告诉你缺什么
+  9) 卸载
   0) 退出
 ```
 
@@ -154,6 +155,10 @@ FitLog 管理菜单   /opt/fitlog
   管理员：   admin
   密码：     9dc367c4511c      ← 记下来，登录后请立刻改
 ```
+
+> **注意看端口号**。如果 8080 已被别的程序占用（NAS、宝塔、Docker 面板都很常见），脚本会**自动改用高位端口**并从 `18473` 开始找空闲的，屏幕上的地址会变成 `http://服务器IP:18473` —— 以脚本打印的为准，后面配反代、白名单时也用它。
+>
+> 想自己指定：`./install.sh port 18473`；想看看换到哪个了：`cat .env | grep PORT`。
 
 ### 3.3 验证后端活着
 
@@ -228,7 +233,7 @@ apt install -y caddy          # Debian / Ubuntu
 ```caddyfile
 fitlog.example.com {
     encode zstd gzip
-    reverse_proxy 127.0.0.1:8080
+    reverse_proxy 127.0.0.1:8080    # 后端换过端口就改成 127.0.0.1:18473
 }
 ```
 
@@ -267,7 +272,7 @@ server {
     client_max_body_size 10m;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8080;   # 后端换过端口就改这里
         proxy_http_version 1.1;
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
@@ -524,7 +529,8 @@ bash install.sh          # 菜单
 | 重启 | 4) 重启服务 | `bash install.sh restart` |
 | 备份 | 5) 备份数据 | `bash install.sh backup` |
 | 看日志 | 6) 查看日志 | `bash install.sh log` |
-| 查环境问题 | 7) 环境自检 | `bash install.sh doctor` |
+| 换端口 | 7) 修改端口 | `bash install.sh port [端口]` |
+| 查环境问题 | 8) 环境自检 | `bash install.sh doctor` |
 
 ### 10.1 定时备份
 
@@ -592,6 +598,8 @@ bash install.sh install --yes       # 已存在 .env 会自动保留，不会重
 | 升级后数据「不见了」 | `DATA_DIR` 变了（Docker 用 `data-store/`，脚本用 `data/`） | 统一到一种部署方式，或把 `.env` 的 `DATA_DIR` 指回原路径 |
 | `SQLITE_BUSY` / 写不进去 | 启动了第二个后端实例 | `ps aux \| grep server/index.js`，只留一个 |
 | 小程序打开白屏，网页正常 | 包内代码报错 | 开发者工具「调试器 → Console」看红字；`node tools/lint.mjs` 先静态检查 |
+| 装完提示「20 秒内没等到服务响应」 | 端口被占（进程启动即退出），或进程崩溃 | 脚本现在会自动打印端口占用 + 最近日志；直接 `./install.sh port` 换端口，还不行看日志里的报错 |
+| 网页能开，但小程序一直连不上 | 反代 `proxy_pass` 还指着旧端口 | `./install.sh port` 换端口后，记得同步改 Caddy / nginx 再 reload |
 
 环境层的问题，一条命令定位：
 

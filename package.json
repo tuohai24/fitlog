@@ -1,6 +1,6 @@
 {
   "name": "fitlog",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "私人健身训练记录系统（动作库 + 训练记录 + 训练动态留言 + DeepSeek 计划）",
   "main": "server/index.js",
   "scripts": {
