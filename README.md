@@ -134,6 +134,7 @@ fitlog/
 │   ├── seed-social-demo.mjs   # 生成 / 清理「动态 + 留言」演示账号（demo_lin / demo_zhou）
 │   ├── smoke-social.mjs       # 动态与留言的接口冒烟（分享可见性、越权 404、留言权限）
 │   ├── e2e-social.mjs         # 双账号浏览器 E2E（Playwright + 本机 Edge）
+│   ├── test-install-env.sh    # install.sh 环境补装逻辑的离线测试（stub 掉系统命令）
 │   ├── reset-data.mjs         # 清空训练 / 计划 / 配置（保留动作库）
 │   └── fetch-font.mjs         # 补齐 PDF 导出用的中文字体
 ├── install.sh                 # 一键安装 / 更新 / 备份 / 卸载（带菜单）
@@ -161,38 +162,55 @@ bash install.sh
 ```
 FitLog 管理菜单   /opt/fitlog
 ────────────────────────────────────────
-  1) 安装 / 首次部署
+  1) 安装 / 首次部署     自动补齐 Node、编译工具链等依赖
   2) 更新到最新版本
   3) 查看运行状态
   4) 重启服务
   5) 备份数据
   6) 查看日志
-  7) 卸载
+  7) 环境自检            装不上时先跑这个，逐项告诉你缺什么
+  8) 卸载
   0) 退出
 ```
 
-- **安装**：检查 Node ≥ 20（含 20.6 的 `--env-file` 支持）→ `npm install --omit=dev` → 没有 `.env` 就用 `openssl` 生成随机管理员密码并写成 `chmod 600` → 有 systemd 就装成 `fitlog.service` 并 `enable --now`，没有就 `nohup` 后台跑并写 `.fitlog.pid` → 轮询 `/api/health` 最多 20 秒，最后打印访问地址与密码。
-- **更新**：`git pull --ff-only` → 依赖有变化才重装 → 重启 → 健康检查；`.env` 与 `data/fitlog.db` 不动。
+**环境是自动补的**，不需要你先手动装 Node：
+
+| 缺什么 | 脚本怎么做 |
+| --- | --- |
+| Node.js（没有，或 < 20） | Linux 直接下官方二进制解压到 `/usr/local`（没 root 就 `~/.local`）并重建软链；macOS 走 `brew install node`；都失败再退发行版仓库。下载源依次试 nodejs.org → npmmirror，带 SHA256 校验 |
+| curl / tar / xz | 按发行版自动装（apt / dnf / yum / zypper / pacman / apk / brew 都支持） |
+| python3 / make / g++ | `better-sqlite3` 是原生模块，缺工具链时自动装整套；有预编译包时即使缺也不影响 |
+| npm 源太慢 | 官方源失败后自动换 `registry.npmmirror.com` 重试 |
+| 原生模块编译失败 | 自动补工具链 → `npm_config_build_from_source` 重装 → 再不行单独 `npm rebuild better-sqlite3` |
+| 装完不一定能用 | 最后用 `node -e "require('better-sqlite3')"` 真加载一次，加载不了就继续修，不糊弄 |
+
+- **安装**：`ensure_base_tools → ensure_node → ensure_build_tools → .env → 端口检查 → npm install → 建库 → 启动 → 健康检查`。没有 `.env` 就用 `openssl` 生成随机管理员密码并 `chmod 600`；有 systemd 就装成 `fitlog.service` 并 `enable --now`，没有就 `nohup` 后台跑并写 `.fitlog.pid`；最后轮询 `/api/health` 最多 20 秒，打印访问地址与密码，并汇报「本次自动补装了什么」。
+- **端口冲突不会假成功**：启动前先探端口，是自己在跑就重启，被别的程序占着就报错并告诉你换端口的命令。
+- **更新**：`git pull --ff-only` → 补工具链 → 重装依赖 → 重启 → 健康检查；`.env` 与 `data/fitlog.db` 不动。
+- **自检**：`./install.sh doctor` 逐项检查系统 / Node / npm / 编译工具链 / curl / 端口 / node_modules / 原生模块 / 数据库 / `.env` 权限 / 磁盘，最后给结论。
 - **状态**：systemd / 进程状态 + `/api/health` 健康检查 + 数据库体积 + 只读查库统计「账号 / 训练 / 动态 / 留言」条数。
 - **备份**：把 `data/` 与 `.env` 打成 `backups/fitlog-backup-YYYYmmdd-HHMMSS.tar.gz`（WAL 已落盘，可直接打包）。
 - **日志**：systemd 走 `journalctl -u fitlog`，nohup 模式读 `data/fitlog.log`，取最近 60 行。
 - **卸载**：默认**只停服务、保留数据**，加 `--purge` 才连库一起删。
+- **失败有诊断**：依赖装不上时，脚本会按日志判断是权限（`EACCES`）、磁盘（`ENOSPC`）、网络超时还是编译工具缺失，并直接给出对应的修复命令。
 
 也能直接给子命令（适合脚本 / 不交互）：
 
 ```bash
-bash install.sh install     # 安装并启动
+bash install.sh install     # 安装并启动（缺依赖会自动装）
 bash install.sh update      # 拉取新版本并重启
 bash install.sh status      # 运行状态
 bash install.sh restart     # 重启
 bash install.sh backup      # 备份
 bash install.sh log         # 最近 60 行日志
+bash install.sh doctor      # 环境自检
 bash install.sh uninstall   # 卸载（默认保留数据）
 bash install.sh uninstall --purge --yes   # 连数据一起删，不确认
 ```
 
-> 可用环境变量：`FITLOG_DIR`（安装目录，默认脚本所在目录）、`PORT`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`。
+> 可用环境变量：`FITLOG_DIR`（安装目录）、`PORT`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`NODE_VERSION`（自动装 Node 的大版本，默认 22）、`NODE_MIRROR`（Node 下载镜像）、`NPM_MIRROR`（npm 备用镜像）。
 > 例：`PORT=9000 ADMIN_PASSWORD='换个强密码' bash install.sh install --yes`
+> 服务器不允许脚本动系统包时：`bash install.sh install --no-system-install`，它只报告缺什么、不动系统。
 
 ### 方式二：直接跑（需 Node.js ≥ 20）
 
@@ -446,6 +464,18 @@ node -e "import('./server/db.js').then(async ({db})=>{const {hashPassword}=await
 
 **Q：手机上怎么像 App 一样用？**
 iOS Safari「分享 → 添加到主屏幕」，Android Chrome「菜单 → 添加到主屏幕」。已配置 PWA manifest 与主题色。
+
+**Q：`install.sh` 报「依赖安装失败」怎么办？**
+先跑 `./install.sh doctor`，它会逐项告诉你缺什么。最常见的是这三类：
+
+- **缺 Node**：脚本会自动装；如果失败（比如机器完全连不上外网），手动装 Node 20+ 后重跑即可。
+- **缺 python3 / make / g++**：`better-sqlite3` 要现场编译。`apt install -y python3 make g++`、`dnf install -y python3 make gcc-c++`、`apk add python3 make g++`。
+- **npm 源超时**：脚本会自动换 `registry.npmmirror.com`；也可以手动指定 `NPM_MIRROR=https://registry.npmmirror.com ./install.sh install`。
+
+日志在 `data/.npm-install.log`（系统包安装在 `data/.pkg-install.log`）。脚本会在失败时按错误关键字给出对应修复命令。
+
+**Q：为什么 `PORT=9000 ./install.sh install` 之后访问的还是 8080？**
+`.env` 已存在时脚本会保留原配置，此时它会问你「要不要把 `.env` 的 `PORT` 改成 9000」——选 y 就同步写进去（`--yes` 模式自动同步），下次重启也生效；选 n 则只在本次运行生效。之所以要同步，是因为 systemd 服务只读 `.env`，不同步会出现「脚本健康检查通过、重启后又回旧端口」。
 
 **Q：能否多人使用？**
 可以。管理员在「用户管理」里给家人 / 朋友各建一个账号，或设置 `SIGNUP_CODE` 让他们自助注册；每个账号的数据完全隔离，互不可见。
