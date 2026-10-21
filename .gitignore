@@ -7,3 +7,5 @@ data/raw/
 data-store/
 .workbuddy/
 *.log
+backups/
+.fitlog.pid

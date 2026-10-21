@@ -68,6 +68,17 @@ export const api = {
   updateWorkout: (id, payload) => request(`/workouts/${id}`, { method: 'PUT', body: payload }),
   deleteWorkout: (id) => request(`/workouts/${id}`, { method: 'DELETE' }),
   workoutFromPlan: (planId, dayIndex, date) => request('/workouts/from-plan', { method: 'POST', body: { planId, dayIndex, date } }),
+  finishWorkout: (id, share) => request(`/workouts/${id}/finish`, { method: 'POST', body: { share } }),
+  shareWorkout: (id, shared) => request(`/workouts/${id}/share`, { method: 'PATCH', body: { shared } }),
+
+  // 训练动态与留言
+  feed: (params = {}) => {
+    const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null)).toString();
+    return request(`/feed?${qs}`);
+  },
+  feedPost: (id) => request(`/feed/${id}`),
+  addComment: (id, content) => request(`/feed/${id}/comments`, { method: 'POST', body: { content } }),
+  deleteComment: (commentId) => request(`/feed/comments/${commentId}`, { method: 'DELETE' }),
 
   // 统计
   overview: (days = 30) => request(`/stats/overview?days=${days}`),

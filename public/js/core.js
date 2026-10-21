@@ -53,8 +53,23 @@ export function relativeDay(s) {
   return dateLabel(s);
 }
 
-/* ---------------- 图标（SF Symbols 风格线性图标） ---------------- */
-const ICONS = {
+/** ISO 时间戳 → “3 小时前” 之类的相对说法 */
+export function timeAgo(iso) {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return '';
+  const diff = Date.now() - t;
+  if (diff < 60e3) return '刚刚';
+  if (diff < 3600e3) return `${Math.floor(diff / 60e3)} 分钟前`;
+  if (diff < 86400e3) return `${Math.floor(diff / 3600e3)} 小时前`;
+  const days = Math.floor(diff / 86400e3);
+  if (days === 1) return '昨天';
+  if (days < 7) return `${days} 天前`;
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+/* ---------------- 图标（SF Symbols 风格线性图标） ---------------- */const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/>',
   dumbbell: '<path d="M6.5 9v6M3.5 10v4M17.5 9v6M20.5 10v4M6.5 12h11"/>',
   chart: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
@@ -78,6 +93,10 @@ const ICONS = {
   ellipsis: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   copy: '<rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M15 5.5A2.5 2.5 0 0 0 12.5 3H5.5A2.5 2.5 0 0 0 3 5.5v7A2.5 2.5 0 0 0 5.5 15"/>',
   logout: '<path d="M15 4h3.5A2.5 2.5 0 0 1 21 6.5v11A2.5 2.5 0 0 1 18.5 20H15"/><path d="M10 8l-4 4 4 4M6 12h9"/>',
+  community: '<circle cx="9" cy="8" r="3.1"/><path d="M3.4 19.2c0-3.1 2.5-5.2 5.6-5.2s5.6 2.1 5.6 5.2"/><path d="M16.2 6.3a2.9 2.9 0 0 1 0 5.4"/><path d="M17.4 14.6c2.2.6 3.6 2.3 3.6 4.4"/>',
+  chat: '<path d="M20.5 11.8a7.9 7.9 0 0 1-11.4 7L4 20l1.3-4.8A7.9 7.9 0 1 1 20.5 11.8z"/>',
+  send: '<path d="M20.5 3.5 3.8 10.4l6.4 2.5 2.5 6.4 7.8-15.8z"/><path d="M10.2 12.9 20.5 3.5"/>',
+  lock: '<rect x="4.5" y="10.5" width="15" height="10" rx="3"/><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"/>',
 };
 
 export function icon(name, cls = '') {

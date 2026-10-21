@@ -14,8 +14,18 @@ export function parseCookies(header = '') {
   return out;
 }
 
+/**
+ * 会话 token 来源：浏览器用 HttpOnly Cookie，小程序 / 原生客户端用
+ * `Authorization: Bearer <token>`（wx.request 不会稳定携带 Cookie）。
+ * 两者共用同一张 sessions 表，登出 / 改密码时一起失效。
+ */
 export function sessionTokenFrom(req) {
-  return parseCookies(req.headers.cookie)[COOKIE_NAME];
+  const cookieToken = parseCookies(req.headers.cookie)[COOKIE_NAME];
+  if (cookieToken) return cookieToken;
+  const auth = String(req.headers.authorization || '');
+  if (/^Bearer\s+/i.test(auth)) return auth.replace(/^Bearer\s+/i, '').trim();
+  const custom = req.headers['x-session-token'];
+  return custom ? String(custom) : undefined;
 }
 
 export function setSessionCookie(res, req, token, expiresAt) {

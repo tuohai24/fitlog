@@ -10,10 +10,13 @@ import plansView from './views/plans.js';
 import planDetailView from './views/plan-detail.js';
 import planEditorView from './views/plan-editor.js';
 import meView from './views/me.js';
+import feedView from './views/feed.js';
+import postView from './views/post.js';
 import loginView from './views/login.js';
 
 const TABS = [
   { key: 'home', label: '今日', icon: 'home', path: '/' },
+  { key: 'feed', label: '动态', icon: 'community', path: '/feed' },
   { key: 'exercises', label: '动作库', icon: 'dumbbell', path: '/exercises' },
   { key: 'history', label: '历史', icon: 'calendar', path: '/history' },
   { key: 'stats', label: '统计', icon: 'chart', path: '/stats' },
@@ -32,6 +35,8 @@ const ROUTES = [
   { re: /^\/plans\/new$/, view: planEditorView, tab: 'plans', title: '新建计划' },
   { re: /^\/plans\/(\d+)\/edit$/, view: planEditorView, tab: 'plans', title: '编辑计划' },
   { re: /^\/plans\/(\d+)$/, view: planDetailView, tab: 'plans', title: '计划详情' },
+  { re: /^\/feed$/, view: feedView, tab: 'feed', title: '训练动态' },
+  { re: /^\/feed\/(\d+)$/, view: postView, tab: 'feed', title: '动态详情' },
   { re: /^\/me$/, view: meView, tab: 'me', title: '我的' },
 ];
 

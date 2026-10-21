@@ -55,7 +55,8 @@ router.post('/login', (req, res) => {
   touchLogin(user.id);
   const { token, exp } = createSession(user.id);
   setSessionCookie(res, req, token, exp);
-  res.json({ ok: true, user: publicUser(user) });
+  // token 同时返回给非浏览器客户端（小程序），浏览器端忽略即可
+  res.json({ ok: true, user: publicUser(user), token, expiresAt: exp.toISOString() });
 });
 
 router.post('/register', (req, res) => {
@@ -79,7 +80,7 @@ router.post('/register', (req, res) => {
   touchLogin(user.id);
   const { token, exp } = createSession(user.id);
   setSessionCookie(res, req, token, exp);
-  res.status(201).json({ ok: true, user: publicUser(user) });
+  res.status(201).json({ ok: true, user: publicUser(user), token, expiresAt: exp.toISOString() });
 });
 
 router.post('/logout', (req, res) => {

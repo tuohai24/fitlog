@@ -16,6 +16,9 @@ const normalize = (w) => ({
   title: w.title || '',
   notes: w.notes || '',
   finishedAt: w.finishedAt || null,
+  shared: !!w.shared,
+  sharedAt: w.sharedAt || null,
+  commentCount: w.commentCount || 0,
   exercises: (w.exercises || []).map(e => ({
     id: e.id,
     exerciseId: e.exerciseId,
@@ -60,6 +63,19 @@ function render(el) {
     <div class="muted" style="margin-bottom:18px;padding-left:2px">
       ${state.exercises.length} 个动作 · ${doneSets} 组完成 · ${fmtNum(totalVolume)} kg 容量
     </div>
+
+    ${state.shared ? `
+      <button class="share-chip" data-open-post>
+        ${icon('community')}
+        <span>已分享到训练动态</span>
+        <span class="share-chip-count">${state.commentCount} 条留言</span>
+        ${icon('chevronRight', 'chevron')}
+      </button>` : `
+      <button class="share-chip quiet" data-toggle-share>
+        ${icon('lock')}
+        <span>这次训练只有你自己可见</span>
+        <span class="share-chip-count">点这里分享</span>
+      </button>`}
 
     <div id="ex-list">
       ${state.exercises.length ? state.exercises.map((ex, i) => exerciseCard(ex, i)).join('') : `
@@ -136,42 +152,33 @@ function setRow(s, i, j) {
 }
 
 /* =========================== 事件 =========================== */
+function openDateSheet(el, nav) {
+  openSheet({
+    title: '修改训练日期',
+    content: `
+      <input class="input" type="date" id="date-input" value="${state.date}" max="${todayStr()}" />
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-secondary btn-block" id="date-today">回到今天</button>
+        <button class="btn btn-block" id="date-save">保存</button>
+      </div>`,
+    onMount(sheet) {
+      const input = sheet.querySelector('#date-input');
+      sheet.querySelector('#date-today').addEventListener('click', () => { input.value = todayStr(); });
+      sheet.querySelector('#date-save').addEventListener('click', () => {
+        if (!input.value) return;
+        state.date = input.value;
+        markDirty();
+        closeSheet();
+        render(el);
+        loadHints(el);
+      });
+    },
+  });
+}
+
+/* 用属性赋值而不是 addEventListener：局部重渲染后可以安全地重复调用 */
 function bind(el, nav) {
-  el.querySelector('[data-back]')?.addEventListener('click', () => nav('/'));
-
-  const openDateSheet = () => {
-    openSheet({
-      title: '修改训练日期',
-      content: `
-        <input class="input" type="date" id="date-input" value="${state.date}" max="${todayStr()}" />
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <button class="btn btn-secondary btn-block" id="date-today">回到今天</button>
-          <button class="btn btn-block" id="date-save">保存</button>
-        </div>`,
-      onMount(sheet) {
-        const input = sheet.querySelector('#date-input');
-        sheet.querySelector('#date-today').addEventListener('click', () => { input.value = todayStr(); });
-        sheet.querySelector('#date-save').addEventListener('click', () => {
-          if (!input.value) return;
-          state.date = input.value;
-          markDirty();
-          closeSheet();
-          render(el);
-          loadHints(el);
-        });
-      },
-    });
-  };
-  el.querySelector('#w-title')?.addEventListener('input', (e) => {
-    state.title = e.target.value;
-    markDirty();
-  });
-  el.querySelector('#w-notes')?.addEventListener('input', (e) => {
-    state.notes = e.target.value;
-    markDirty();
-  });
-
-  el.addEventListener('input', (e) => {
+  el.oninput = (e) => {
     if (e.target.id === 'w-title') { state.title = e.target.value; markDirty(); return; }
     if (e.target.id === 'w-notes') { state.notes = e.target.value; markDirty(); return; }
 
@@ -182,11 +189,11 @@ function bind(el, nav) {
     state.exercises[i].sets[j][e.target.dataset.field] = Number.isFinite(v) ? v : 0;
     markDirty();
     updateSummary(el);
-  });
+  };
 
-  el.addEventListener('click', async (e) => {
+  el.onclick = async (e) => {
     if (e.target.closest('[data-back]')) return nav('/');
-    if (e.target.closest('[data-edit-date]')) return openDateSheet();
+    if (e.target.closest('[data-edit-date]')) return openDateSheet(el, nav);
 
     const addEx = e.target.closest('[data-add-ex]');
     if (addEx) {
@@ -260,18 +267,28 @@ function bind(el, nav) {
     }
 
     if (e.target.closest('[data-finish]')) {
-      const btn = e.target.closest('[data-finish]');
-      btn.disabled = true;
-      btn.textContent = '保存中…';
+      openFinishSheet(el, nav);
+      return;
+    }
+
+    const openPost = e.target.closest('[data-open-post]');
+    if (openPost) return nav(`/feed/${state.id}`);
+
+    const toggleShare = e.target.closest('[data-toggle-share]');
+    if (toggleShare) {
+      toggleShare.disabled = true;
       try {
-        await save(true);
-        state.finishedAt = new Date().toISOString();
-        toast('训练已保存');
-        nav('/');
+        const res = await api.shareWorkout(state.id, !state.shared);
+        state.shared = res.shared;
+        state.sharedAt = res.sharedAt;
+        state.commentCount = res.commentCount;
+        toast(res.shared ? '已分享到动态' : '已取消分享');
+        render(el);
+        bind(el, nav);
+        loadHints(el);
       } catch (err) {
         toast(err.message);
-        btn.disabled = false;
-        btn.textContent = '完成训练';
+        toggleShare.disabled = false;
       }
       return;
     }
@@ -290,6 +307,67 @@ function bind(el, nav) {
         nav('/');
       } catch (err) { toast(err.message); }
     }
+  };
+}
+
+/* =========================== 完成训练 =========================== */
+function openFinishSheet(el, nav) {
+  const totalVolume = state.exercises.reduce((acc, ex) =>
+    acc + ex.sets.reduce((a, s) => a + (s.done ? s.weight * s.reps : 0), 0), 0);
+  const doneSets = state.exercises.reduce((a, ex) => a + ex.sets.filter(s => s.done).length, 0);
+  let share = state.shared;
+
+  openSheet({
+    title: '完成训练',
+    content: `
+      <div class="finish-summary">
+        <div class="feed-stat"><b class="mono-num">${fmtNum(totalVolume)}</b><span>kg 容量</span></div>
+        <div class="feed-stat"><b class="mono-num">${doneSets}</b><span>组完成</span></div>
+        <div class="feed-stat"><b class="mono-num">${state.exercises.length}</b><span>个动作</span></div>
+      </div>
+
+      <button class="finish-share" data-share-row>
+        <div class="row-main" style="text-align:left">
+          <div class="row-title">公开到训练动态</div>
+          <div class="row-sub">其他账号能看到这次训练，并给你留言</div>
+        </div>
+        <span class="switch ${share ? 'on' : ''}"><i></i></span>
+      </button>
+
+      <p class="muted" style="font-size:13px;margin-top:12px">保存后也能在训练记录里随时改。</p>
+
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-secondary btn-block" data-cancel>再练一会儿</button>
+        <button class="btn btn-block" data-confirm>完成并保存</button>
+      </div>`,
+    onMount(sheet) {
+      const sw = sheet.querySelector('.switch');
+      sheet.querySelector('[data-share-row]').addEventListener('click', () => {
+        share = !share;
+        sw.classList.toggle('on', share);
+      });
+      sheet.querySelector('[data-cancel]').addEventListener('click', () => closeSheet());
+      sheet.querySelector('[data-confirm]').addEventListener('click', async (ev) => {
+        const btn = ev.currentTarget;
+        btn.disabled = true;
+        btn.textContent = '保存中…';
+        try {
+          state.finishedAt = new Date().toISOString();
+          await save(true);
+          const res = await api.finishWorkout(state.id, share);
+          state.shared = res.shared;
+          state.sharedAt = res.sharedAt;
+          state.commentCount = res.commentCount;
+          closeSheet();
+          toast(share ? '已完成，并分享到动态' : '训练已保存');
+          setTimeout(() => nav(share ? '/feed' : '/'), 240);
+        } catch (err) {
+          toast(err.message);
+          btn.disabled = false;
+          btn.textContent = '完成并保存';
+        }
+      });
+    },
   });
 }
 

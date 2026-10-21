@@ -3,8 +3,13 @@
  *
  * 依赖：npm i -D playwright（复用本机 Edge，无需额外下载浏览器）
  * 用法：先启动服务（npm run dev），再 node scripts/screenshots.mjs
+ *
+ * 动态页需要「别的账号分享出来的训练」才有内容，脚本会先调用 seedSocialDemo()
+ * 生成两个演示账号（demo_lin / demo_zhou，密码 demo1234）。截图完成后它们会留在库里，
+ * 想清掉执行：node scripts/seed-social-demo.mjs --clean
  */
 import { chromium } from 'playwright';
+import { seedSocialDemo } from './seed-social-demo.mjs';
 
 const OUT = 'docs/screenshots';
 const BASE = process.env.BASE_URL || 'http://localhost:8080';
@@ -43,8 +48,8 @@ async function open({ width, height, colorScheme = 'light', scale = 2 }) {
   return page;
 }
 
-async function shot(page, name, { full = true } = {}) {
-  await page.addStyleTag({ content: FLATTEN_TABBAR });
+async function shot(page, name, { full = true, extraCss = '' } = {}) {
+  await page.addStyleTag({ content: FLATTEN_TABBAR + extraCss });
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: full });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -72,6 +77,9 @@ const go = async (page, hash, wait = 1300) => {
 }
 
 const m = await open({ width: 390, height: 844 });
+
+// 让动态页有内容：生成/刷新跨账号的演示分享与留言
+seedSocialDemo();
 
 const latestWorkout = await m.evaluate(async () => {
   const r = await fetch('/api/workouts?limit=1', { credentials: 'same-origin' });
@@ -116,6 +124,22 @@ await go(m, '#/stats', 1500);
 await shot(m, '10-stats');
 await go(m, '#/history', 1200);
 await shot(m, '11-history');
+
+/* 动态列表 / 动态详情 */
+await go(m, '#/feed', 1600);
+await shot(m, '16-feed');
+
+const feedPost = await m.evaluate(async () => {
+  const r = await fetch('/api/feed?limit=3', { credentials: 'same-origin' });
+  const list = await r.json();
+  return (Array.isArray(list) ? list : []).find((p) => p.commentCount > 0)?.id || list[0]?.id || null;
+});
+if (feedPost) {
+  await go(m, `#/feed/${feedPost}`, 1600);
+  // 固定底部的留言输入框放回文档流，整页截图才不会盖住留言
+  await shot(m, '17-feed-post', { extraCss: '.composer { position: static !important; }' });
+}
+
 await go(m, '#/me', 1400);
 await shot(m, '14-me');
 
@@ -124,6 +148,8 @@ const d = await open({ width: 1440, height: 900, colorScheme: 'dark', scale: 1 }
 await shot(d, '12-desktop-dark', { full: false });
 await go(d, '#/exercises/0025', 2200);
 await shot(d, '13-exercise-dark');
+await go(d, '#/feed', 1600);
+await shot(d, '18-feed-dark', { full: false });
 await go(d, '#/me', 1400);
 await shot(d, '15-me-dark', { full: false });
 

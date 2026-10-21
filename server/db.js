@@ -41,6 +41,15 @@ CREATE TABLE IF NOT EXISTS workouts (
 );
 CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
 
+CREATE TABLE IF NOT EXISTS workout_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_comments_workout ON workout_comments(workout_id, id);
+
 CREATE TABLE IF NOT EXISTS workout_exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   workout_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
@@ -114,6 +123,22 @@ if (!hasColumn('workouts', 'user_id')) db.exec('ALTER TABLE workouts ADD COLUMN 
 if (!hasColumn('plans', 'user_id')) db.exec('ALTER TABLE plans ADD COLUMN user_id INTEGER');
 db.exec('CREATE INDEX IF NOT EXISTS idx_workouts_user ON workouts(user_id, date DESC)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_plans_user ON plans(user_id, active)');
+
+// 2.1) 训练动态：shared=1 表示这次训练公开给其他账号看
+if (!hasColumn('workouts', 'shared')) db.exec('ALTER TABLE workouts ADD COLUMN shared INTEGER NOT NULL DEFAULT 0');
+if (!hasColumn('workouts', 'shared_at')) db.exec('ALTER TABLE workouts ADD COLUMN shared_at TEXT');
+db.exec('CREATE INDEX IF NOT EXISTS idx_workouts_shared ON workouts(shared, shared_at DESC)');
+// 留言表（老库补建）
+db.exec(`
+CREATE TABLE IF NOT EXISTS workout_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_comments_workout ON workout_comments(workout_id, id);
+`);
 
 // 3) 设置改为按用户隔离：(user_id, key) 复合主键
 let legacySettings = false;

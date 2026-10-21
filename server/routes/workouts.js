@@ -51,8 +51,10 @@ function readWorkout(id, userId) {
     id: w.id, date: w.date, title: w.title, notes: w.notes,
     planId: w.plan_id, planDay: w.plan_day,
     startedAt: w.started_at, finishedAt: w.finished_at,
+    shared: w.shared === 1, sharedAt: w.shared_at,
     createdAt: w.created_at, updatedAt: w.updated_at,
     stats: { volume: Math.round(volume), doneSets, totalReps, exerciseCount: exercises.length },
+    commentCount: db.prepare('SELECT COUNT(*) AS n FROM workout_comments WHERE workout_id = ?').get(id).n,
     exercises,
   };
 }
@@ -91,6 +93,7 @@ router.get('/', (req, res) => {
   res.json(rows.map(r => ({
     id: r.id, date: r.date, title: r.title, notes: r.notes,
     planId: r.plan_id,
+    shared: r.shared === 1, sharedAt: r.shared_at,
     createdAt: r.created_at, updatedAt: r.updated_at,
     exerciseCount: r.exerciseCount,
     doneSets: r.doneSets,
@@ -165,6 +168,40 @@ router.delete('/:id', (req, res) => {
   const info = db.prepare('DELETE FROM workouts WHERE id = ? AND user_id = ?').run(id, req.user.id);
   if (!info.changes) return res.status(404).json({ error: '训练不存在' });
   res.json({ ok: true });
+});
+
+/* 完成训练：写入完成时间，并决定是否公开到训练动态 */
+router.post('/:id/finish', (req, res) => {
+  const id = Number(req.params.id);
+  const w = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?').get(id, req.user.id);
+  if (!w) return res.status(404).json({ error: '训练不存在' });
+
+  const body = req.body || {};
+  const ts = nowISO();
+  const share = body.share === undefined ? w.shared === 1 : !!body.share;
+  db.prepare(`UPDATE workouts SET finished_at = ?, shared = ?, shared_at = ?, updated_at = ? WHERE id = ?`)
+    .run(
+      body.finishedAt || ts,
+      share ? 1 : 0,
+      share ? (w.shared_at || ts) : w.shared_at,
+      ts, id,
+    );
+  res.json(readWorkout(id, req.user.id));
+});
+
+/* 单独切换分享状态（训练记录页 / 动态页用） */
+router.patch('/:id/share', (req, res) => {
+  const id = Number(req.params.id);
+  const w = db.prepare('SELECT id, shared, shared_at FROM workouts WHERE id = ? AND user_id = ?').get(id, req.user.id);
+  if (!w) return res.status(404).json({ error: '训练不存在' });
+
+  const shared = (req.body || {}).shared;
+  if (typeof shared !== 'boolean') return res.status(400).json({ error: 'shared 需要是布尔值' });
+
+  const ts = nowISO();
+  db.prepare('UPDATE workouts SET shared = ?, shared_at = ?, updated_at = ? WHERE id = ?')
+    .run(shared ? 1 : 0, shared ? (w.shared_at || ts) : w.shared_at, ts, id);
+  res.json(readWorkout(id, req.user.id));
 });
 
 /* 从计划某天生成训练草稿 */

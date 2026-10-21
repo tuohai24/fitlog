@@ -13,6 +13,7 @@ import statsRouter from './routes/stats.js';
 import plansRouter from './routes/plans.js';
 import settingsRouter from './routes/settings.js';
 import exportRouter from './routes/export.js';
+import feedRouter from './routes/feed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -39,6 +40,7 @@ app.use('/api/stats', requireAuth, statsRouter);
 app.use('/api/plans', requireAuth, plansRouter);
 app.use('/api/settings', requireAuth, settingsRouter);
 app.use('/api/export', requireAuth, exportRouter);
+app.use('/api/feed', requireAuth, feedRouter);
 
 app.use('/api', (req, res) => res.status(404).json({ error: '接口不存在' }));
 

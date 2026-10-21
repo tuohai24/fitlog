@@ -1,9 +1,10 @@
 # FitLog · 私人健身训练记录
 
-一套可自托管的全栈健身记录系统：**1,285 个中文动作库（动图 + 肌肉部位图 + 分步讲解）＋ 逐组重量记录 ＋ 按周几自动排课的训练计划 ＋ DeepSeek 生成计划 ＋ 多账号隔离 ＋ 五种格式导出**。
+一套可自托管的全栈健身记录系统：**1,285 个中文动作库（动图 + 肌肉部位图 + 分步讲解）＋ 逐组重量记录 ＋ 按周几自动排课的训练计划 ＋ DeepSeek 生成计划 ＋ 多账号隔离 ＋ 训练动态与留言 ＋ 五种格式导出**。
 界面为**黑白单色设计**（Monochrome）：浅色模式黑字白底、深色模式整体反相，全站仅保留一处危险红；移动端优先，手机上可以直接当作 App 使用（支持添加到主屏幕）。
 
 > 打开就知道今天练什么：计划里选好「每周几练哪套」，首页按当天日期自动展示训练内容，一键生成当天训练记录。
+> 练完点「完成训练」，可以顺手把这次训练分享到动态，让同系统的家人 / 朋友看见你的组次与容量，并留下评价。
 
 
 ## 界面预览
@@ -38,6 +39,16 @@
 | --- | --- |
 | ![历史](docs/screenshots/11-history.png) | ![桌面端深色](docs/screenshots/12-desktop-dark.png) |
 
+训练动态：练完把训练公开出去，别的账号能看到动作、组×次数、总容量，并留言互动。
+
+| 动态列表（全部 / 我分享的） | 动态详情（动作明细 + 留言） |
+| --- | --- |
+| ![动态](docs/screenshots/16-feed.png) | ![动态详情](docs/screenshots/17-feed-post.png) |
+
+深色模式下的动态页：
+
+![动态深色](docs/screenshots/18-feed-dark.png)
+
 「我的」页面：账号信息、导出面板（5 种格式 + 时间范围）、用户管理入口。
 
 | 我的（浅色） | 我的（深色） |
@@ -64,8 +75,12 @@
 | 历史 | 月历视图标记训练日，按天查看训练详情，按月汇总容量 |
 | 统计 | 训练次数 / 容量 / 组数 / 连续天数、容量趋势柱状图（7 / 30 / 90 天）、肌群分布、个人纪录（估算 1RM） |
 | 多账号 | 用户名 + 密码登录（scrypt 加盐哈希、HttpOnly 会话 Cookie）；每个账号的训练、计划、DeepSeek Key 完全隔离；管理员可在「我的 → 用户管理」添加 / 重置 / 删除账号，首个账号自动成为管理员 |
+| 训练动态 | 练完点「完成训练」时可选**公开到动态**（也可以事后单独开 / 关分享）；动态流按时间倒序展示所有账号公开的训练：作者、动作标签（`杠铃卧推 ×4`）、总容量 / 组数 / 动作数、最近留言预览。**不分享的训练永远只有自己能看到** |
+| 留言 | 任意账号可在公开动态下留言（单条 ≤ 500 字，回车即发）；留言作者、动态作者、管理员可以删除留言；动态主人随时「取消分享」，该训练立刻从所有人视野里消失 |
 | 导出 | 一次数据、五种格式：**JSON**（完整备份）、**Excel**（概览 / 训练记录 / 组明细 / 计划 四个工作表）、**PDF**（排版好的报告，内置中文字体）、**Markdown**（丢进笔记软件）、**CSV**（逐组明细）；可选「全部 / 近 30 天 / 近 90 天 / 近一年」 |
 | 数据 | 全部数据存于本地 SQLite（WAL），按用户隔离 |
+| 部署 | `install.sh` 一键脚本：菜单式安装 / 更新 / 状态 / 重启 / 备份 / 日志 / 卸载，自动生成 `.env` 随机密码、写 systemd 服务（无 systemd 时退化为 nohup）、装完做健康检查 |
+| 小程序 | 同仓库外的 `fitlog-mp/` 是原生微信小程序端，连同一个后端：相同的动态流、留言、完成即分享，`tools/lint.mjs` + `tools/smoke.mjs` 自检 |
 
 
 ## 日常动线
@@ -74,7 +89,8 @@
 2. **每天打开**：首页直接显示今天该练哪天；点「开始今天的训练」，系统按计划生成当天训练记录（动作、组数、上次重量都已预填）。
 3. **边练边记**：每组填重量与次数，点右侧圆形按钮标记完成；组号可切换成热身组 / 力竭组。
 4. **看进度**：`统计` 看容量趋势、肌群分布、个人纪录；`历史` 按月回看。
-5. **不按计划的日子**：首页「不按计划，自由训练」直接从动作库挑动作练。
+5. **练完分享**：训练页点「完成训练」→ 开关打开「分享到动态」→ 确认后跳到 `动态`；别人点进你的动态能看到每组重量与次数并留言，你会在动态列表直接看到预览。
+6. **不按计划的日子**：首页「不按计划，自由训练」直接从动作库挑动作练。
 
 
 ## 技术栈
@@ -95,17 +111,17 @@ fitlog/
 │   ├── exercise-guide.js      # 动作讲解生成（15 种动作模式 + 组次建议）
 │   ├── report.js              # 导出数据装配 + JSON/CSV/MD/XLSX/PDF 渲染
 │   ├── xlsx.js                # 零依赖 XLSX 生成器（zip + SpreadsheetML）
-│   └── routes/                # auth / users / exercises / workouts / stats / plans / settings / export
+│   └── routes/                # auth / users / exercises / workouts / stats / plans / settings / export / feed
 ├── public/                    # 前端（无构建步骤）
 │   ├── index.html
 │   ├── css/app.css            # 设计系统（含深浅色、动图、肌肉图、计划编辑器）
 │   ├── js/
-│   │   ├── app.js             # hash 路由 + 6 个底部标签
+│   │   ├── app.js             # hash 路由 + 7 个底部标签
 │   │   ├── api.js  core.js    # 接口封装 / UI 原子件
 │   │   ├── muscle-map.js      # 动作 → 肌群映射 + 肌肉图渲染
 │   │   ├── vendor/musclemap.js # MuscleMap 人体矢量路径数据（MIT，见文件头署名）
 │   │   ├── picker.js          # 通用动作选择器（记录页与计划编辑器共用）
-│   │   └── views/             # home / log / exercises / exercise-detail /
+│   │   └── views/             # home / log / exercises / exercise-detail / feed / post /
 │   │                          # plans / plan-detail / plan-editor / history / stats / me
 │   └── media/
 │       ├── thumbs/            # 动作缩略图 180×180（12 MB）
@@ -115,8 +131,12 @@ fitlog/
 │   ├── fetch-media.mjs        # 下载动作缩略图 / 动图
 │   ├── screenshots.mjs        # 生成 README 截图（需要 playwright）
 │   ├── seed-demo.mjs          # 生成演示数据（训练记录 + 一份四分化计划）
+│   ├── seed-social-demo.mjs   # 生成 / 清理「动态 + 留言」演示账号（demo_lin / demo_zhou）
+│   ├── smoke-social.mjs       # 动态与留言的接口冒烟（分享可见性、越权 404、留言权限）
+│   ├── e2e-social.mjs         # 双账号浏览器 E2E（Playwright + 本机 Edge）
 │   ├── reset-data.mjs         # 清空训练 / 计划 / 配置（保留动作库）
 │   └── fetch-font.mjs         # 补齐 PDF 导出用的中文字体
+├── install.sh                 # 一键安装 / 更新 / 备份 / 卸载（带菜单）
 ├── assets/fonts/              # PDF 导出用的 Noto Sans SC（SIL OFL，11 MB）
 ├── data/
 │   ├── exercises.json         # 构建产物：动作库
@@ -128,7 +148,53 @@ fitlog/
 
 ## 快速开始
 
-### 方式一：直接跑（需 Node.js ≥ 20）
+### 方式一：一键脚本（推荐，Linux / macOS / WSL）
+
+```bash
+git clone https://github.com/tuohai24/fitlog.git
+cd fitlog
+bash install.sh
+```
+
+回车就是一个交互菜单（不带参数直接运行）：
+
+```
+FitLog 管理菜单   /opt/fitlog
+────────────────────────────────────────
+  1) 安装 / 首次部署
+  2) 更新到最新版本
+  3) 查看运行状态
+  4) 重启服务
+  5) 备份数据
+  6) 查看日志
+  7) 卸载
+  0) 退出
+```
+
+- **安装**：检查 Node ≥ 20（含 20.6 的 `--env-file` 支持）→ `npm install --omit=dev` → 没有 `.env` 就用 `openssl` 生成随机管理员密码并写成 `chmod 600` → 有 systemd 就装成 `fitlog.service` 并 `enable --now`，没有就 `nohup` 后台跑并写 `.fitlog.pid` → 轮询 `/api/health` 最多 20 秒，最后打印访问地址与密码。
+- **更新**：`git pull --ff-only` → 依赖有变化才重装 → 重启 → 健康检查；`.env` 与 `data/fitlog.db` 不动。
+- **状态**：systemd / 进程状态 + `/api/health` 健康检查 + 数据库体积 + 只读查库统计「账号 / 训练 / 动态 / 留言」条数。
+- **备份**：把 `data/` 与 `.env` 打成 `backups/fitlog-backup-YYYYmmdd-HHMMSS.tar.gz`（WAL 已落盘，可直接打包）。
+- **日志**：systemd 走 `journalctl -u fitlog`，nohup 模式读 `data/fitlog.log`，取最近 60 行。
+- **卸载**：默认**只停服务、保留数据**，加 `--purge` 才连库一起删。
+
+也能直接给子命令（适合脚本 / 不交互）：
+
+```bash
+bash install.sh install     # 安装并启动
+bash install.sh update      # 拉取新版本并重启
+bash install.sh status      # 运行状态
+bash install.sh restart     # 重启
+bash install.sh backup      # 备份
+bash install.sh log         # 最近 60 行日志
+bash install.sh uninstall   # 卸载（默认保留数据）
+bash install.sh uninstall --purge --yes   # 连数据一起删，不确认
+```
+
+> 可用环境变量：`FITLOG_DIR`（安装目录，默认脚本所在目录）、`PORT`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`。
+> 例：`PORT=9000 ADMIN_PASSWORD='换个强密码' bash install.sh install --yes`
+
+### 方式二：直接跑（需 Node.js ≥ 20）
 
 ```bash
 git clone https://github.com/tuohai24/fitlog.git
@@ -143,9 +209,10 @@ node --env-file=.env server/index.js
 > **首次启动会自动建库**：创建管理员账号，并把旧版本的单用户数据（训练 / 计划 / DeepSeek 配置）全部划归到该账号；旧登录状态会失效，重新登录一次即可。
 
 > **想先看效果？** 数据库文件不入库（`data/fitlog.db` 在 `.gitignore` 里），首次启动是一个干净的库。执行 `npm run seed:demo` 会灌入约 7 周示例训练和一份「四分化增肌 · 每周四练」计划（周二推 / 周四腿 / 周六拉 / 周日肩臂），截图就是用它跑出来的。
+> 再执行 `npm run seed:social` 会额外建两个演示账号（`demo_lin` / `demo_zhou`，密码 `demo1234`）并生成 3 条已公开的训练与几条留言，动态页立刻就有内容；不想要了执行 `node scripts/seed-social-demo.mjs --clean`。
 > 正式使用前执行 `npm run reset -- --yes` 清空训练记录 / 计划 / AI 配置，动作库与账号会保留。
 
-### 方式二：Docker（推荐部署到服务器）
+### 方式三：Docker（推荐部署到服务器）
 
 ```bash
 cd fitlog
@@ -155,7 +222,7 @@ docker compose up -d --build
 
 数据持久化在 `./data-store/fitlog.db`，重启 / 升级镜像不会丢数据。
 
-### 方式三：PM2 常驻
+### 方式四：PM2 常驻
 
 ```bash
 npm install
@@ -209,7 +276,13 @@ pm2 save && pm2 startup
 | GET | `/api/workouts/today` | 今日训练 |
 | GET | `/api/workouts/:id` | 单次训练（含动作与每组数据） |
 | POST / PUT / DELETE | `/api/workouts(/:id)` | 新建 / 整份更新 / 删除 |
+| POST | `/api/workouts/:id/finish` | **完成训练** `{share: true\|false}`：写完成时间，并决定是否公开到动态 |
+| PATCH | `/api/workouts/:id/share` | 单独开关分享 `{shared: true\|false}`（改完立刻从动态里出现 / 消失） |
 | POST | `/api/workouts/from-plan` | 由计划的某一天生成当天训练 |
+| GET | `/api/feed?limit=&before=&scope=all\|mine` | **训练动态流**：所有账号公开的训练（含作者、容量/组数/动作数、动作标签、留言数与最近 2 条留言），游标分页 |
+| GET | `/api/feed/:id` | **动态详情**：完整动作与每组重量次数 + 全部留言 + `isMine` / `shared` |
+| POST | `/api/feed/:id/comments` | 发表留言 `{content}`（≤ 500 字） |
+| DELETE | `/api/feed/comments/:cid` | 删除留言（留言作者 / 动态作者 / 管理员） |
 | GET | `/api/plans` · `/api/plans/:id` | 计划列表 / 详情（含 `weekdays` 与今天对应第几天） |
 | GET | `/api/plans/today?date=YYYY-MM-DD` | **按日期返回今天的训练日**，无则返回下一个训练日 |
 | POST | `/api/plans` · PUT `/api/plans/:id` | 手动创建 / 编辑计划（`days[].weekday` 指定周几，1=周一…7=周日） |
@@ -241,7 +314,9 @@ pm2 save && pm2 startup
 
 ```
 users (账号: username / scrypt 密码哈希 / is_admin)
-  └──< workouts (训练, user_id) ──< workout_exercises ──< sets (weight / reps / done / kind)
+  └──< workouts (训练, user_id, shared / shared_at / finished_at)
+        └──< workout_exercises ──< sets (weight / reps / done / kind)
+        └──< workout_comments (留言, user_id, content)
   └──< plans (训练计划, user_id, content 为 JSON: days[].{ weekday, name, focus, exercises[] })
   └──< settings (按账号的配置, 主键 (user_id, key))
   └──< sessions (登录会话, token / user_id / 过期时间)
@@ -250,6 +325,7 @@ exercises (动作库，全局共享)
 ```
 
 所有业务查询都带 `user_id` 条件，跨账号读写会直接返回 404；删除账号时级联删除其训练、计划、配置与会话。
+**唯一的跨账号读入口是动态**：`GET /api/feed*` 只认 `shared = 1` 的训练，其余接口照旧按 `user_id` 硬隔离——同一条训练，作者用 `/api/workouts/:id` 能读，别人只能走 `/api/feed/:id`，且只在你分享期间可读。
 
 
 ## 关于动作库
@@ -314,9 +390,29 @@ server {
 - **添加账号**：
   - 管理员在「我的 → 用户管理 → 添加账号」里直接建，可勾选「设为管理员」；
   - 或者部署时设置 `SIGNUP_CODE=邀请码`，让对方在登录页「注册」里填码自助注册。
-- **数据隔离**：训练、计划、DeepSeek Key、导出全部按 `user_id` 隔离；越权访问他人的训练 / 计划直接 404。
+- **数据隔离**：训练、计划、DeepSeek Key、导出全部按 `user_id` 隔离；越权访问他人的训练 / 计划直接 404。**唯一例外是主动分享出去的训练**（见上一节「训练动态与留言」）。
 - **账号管理**：管理员可重置他人密码（会踢掉其所有会话）、删除账号（连同其训练、计划、配置一起删除，不可恢复）。当前登录的账号不能删除自己，系统始终保留至少一个管理员。
 - **改密码 / 改昵称**：任意账号可在「我的」里自助操作，改密码后其他设备需重新登录。
+
+
+## 训练动态与留言
+
+训练默认**私有**。「完成训练」时打开「分享到动态」，这次训练才对其他账号可见；之后随时能在动态详情里「取消分享」。
+
+- **谁能看到**：同系统里的任意账号（= 你愿意共享的人）。没有公开广场，也不需要额外开账号体系。
+- **能看到什么**：动态里有作者、日期、训练标题与备注、总容量 / 完成组数 / 总次数 / 动作数，点进详情是**每个动作的每一组** `60×10 · 70×8 · 75×6`；和训练记录页一致，只是只读。
+- **留言**：任意账号都能留言（≤ 500 字，回车即发）。删除权限三级：**留言作者**本人、**动态作者**（可以管理自己动态下的留言）、**管理员**。
+- **取消分享即刻失效**：`shared` 一变 0，`/api/feed/:id` 立即 404，别人刷新就看不到了；已经产生的留言会随训练一起保留在库里，重新分享又会出现。
+- **越权一律 404**：读别人的未分享训练、改别人的分享状态，返回的都是 404（不区分「不存在」和「没权限」，避免探测）。
+- **实现**：没有另建一张「帖子表」——动态就是 `workouts` 上的一个视图（`shared = 1`），所以不存在训练与动态两份数据要走同步；留言单独一张 `workout_comments`，跟着训练级联删除。
+- **两端一致**：网页与微信小程序调用的是同一组接口（`/api/feed*`、`/workouts/:id/finish`、`/workouts/:id/share`），业务规则只写了一遍。
+
+自测：
+
+```bash
+node --env-file=.env scripts/smoke-social.mjs   # 接口冒烟：分享可见性 / 越权 404 / 留言权限（31 项）
+node --env-file=.env scripts/e2e-social.mjs     # 双账号浏览器 E2E：完成→分享→他人可见→留言→删除→取消分享（22 项）
+```
 
 
 ## 备份与迁移
@@ -353,6 +449,15 @@ iOS Safari「分享 → 添加到主屏幕」，Android Chrome「菜单 → 添�
 
 **Q：能否多人使用？**
 可以。管理员在「用户管理」里给家人 / 朋友各建一个账号，或设置 `SIGNUP_CODE` 让他们自助注册；每个账号的数据完全隔离，互不可见。
+
+**Q：怎么让别人看到我今天的训练？**
+训练页点「完成训练」，弹层里把「分享到动态」打开（已经完成的训练，也可以在动态详情页点「分享出去」）。之后所有账号的「动态」里都能看到这次训练的动作与每组数据，并留言。不想被看了就点「取消分享」，立刻失效。
+
+**Q：别人的留言我能删吗？**
+自己的留言随时能删；作为动态作者，你也能删别人在你动态下的留言（防止刷屏）；管理员可以删任何留言。三种身份之外的人看不到删除按钮，接口也会返回 403。
+
+**Q：小程序和网页是同一套数据吗？**
+是。`fitlog-mp/` 只是另一种客户端，接口地址填同一个后端即可：网页走 HttpOnly Cookie，小程序走 `Authorization: Bearer`，共用同一张 `sessions` 表和同一份数据，手机上分享的训练在网页端也能看到。
 
 **Q：PDF 导出报「缺少中文 PDF 字体」？**
 执行 `npm run fetch:font` 重新拉取字体，或设置 `PDF_FONT_PATH` 指向服务器上已有的中文字体（`.ttf` / `.otf`）。
