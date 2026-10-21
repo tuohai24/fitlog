@@ -9,3 +9,11 @@ data-store/
 *.log
 backups/
 .fitlog.pid
+
+# install.sh 运行/测试时的临时产物
+data/.probe/
+data/.test-install-env/
+data/.test-install-funcs.sh
+data/.npm-install.log
+data/.pkg-install.log
+data/.node-dl/

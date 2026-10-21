@@ -247,6 +247,93 @@ check ".env 保持原端口"   "$(grep -c '^PORT=19400$' "$WORK/port3-env.txt")"
 check "被占用 → 自动换端口" "$(cat "$WORK/port4-rc.txt")" "0"
 check "新端口写回 .env"     "$(cat "$WORK/port4-env.txt")" "1"
 
+
+# ---------------------------------------------------------------- Node 22 硬门槛
+printf '\n[9] Node 22 / N-API 10 硬门槛\n'
+check "Node 20 不再算合格（better-sqlite3 需要 N-API 10）" \
+  "$( ( load; node() { if [ "$1" = "-p" ]; then echo 20; else echo v20.19.0; fi; }; need_cmd() { return 0; }; node_ok; echo $? ) )" "1"
+check "Node 22 合格" \
+  "$( ( load; node() { if [ "$1" = "-p" ]; then echo 22; else echo v22.11.0; fi; }; need_cmd() { return 0; }; node_ok; echo $? ) )" "0"
+check "N-API 9 → 不满足" \
+  "$( ( load; node() { echo 9; }; node_napi_ok; echo $? ) )" "1"
+check "N-API 10 → 满足" \
+  "$( ( load; node() { echo 10; }; node_napi_ok; echo $? ) )" "0"
+check "node -p 没输出时按 0 处理（不炸）" \
+  "$( ( load; node() { return 0; }; node_napi ) )" "0"
+
+# ---------------------------------------------------------------- 崩溃分类
+printf '\n[10] 崩溃 / 错误分类（classify_probe）\n'
+LOGX="$WORK/classify.log"; : > "$LOGX"
+check "退出码 0 → ok"        "$( ( load; classify_probe 0 "$LOGX" ) )" "ok"
+check "超时 124"             "$( ( load; classify_probe 124 "$LOGX" ) )" "timeout"
+check "139 → SIGSEGV"        "$( ( load; classify_probe 139 "$LOGX" ) )" "segv"
+check "134 → SIGABRT"        "$( ( load; classify_probe 134 "$LOGX" ) )" "abort"
+check "135 → SIGBUS"         "$( ( load; classify_probe 135 "$LOGX" ) )" "sigbus"
+check "137 → SIGKILL"        "$( ( load; classify_probe 137 "$LOGX" ) )" "killed"
+check "空输出 + 退出码 1"    "$( ( load; classify_probe 1 "$LOGX" ) )" "error"
+
+printf 'Error: The module was compiled against a different NODE_MODULE_VERSION 127\n' > "$LOGX"
+check "ABI 不匹配文案"       "$( ( load; classify_probe 1 "$LOGX" ) )" "abi"
+printf '/x/prebuilds/linux-x64.node: version `GLIBC_2.28` not found\n' > "$LOGX"
+check "缺 GLIBC 符号"        "$( ( load; classify_probe 1 "$LOGX" ) )" "glibc"
+printf 'Error: Cannot find module "/x/better_sqlite3.node"\n' > "$LOGX"
+check "找不到模块"           "$( ( load; classify_probe 1 "$LOGX" ) )" "missing"
+printf 'Error: listen EADDRINUSE: address already in use 0.0.0.0:18473\n' > "$LOGX"
+check "端口占用"             "$( ( load; classify_probe 1 "$LOGX" ) )" "eaddrinuse"
+printf 'SqliteError: database is locked\n' > "$LOGX"
+check "数据库被锁"           "$( ( load; classify_probe 1 "$LOGX" ) )" "busy"
+printf 'SqliteError: file is not a database\n' > "$LOGX"
+check "数据库损坏"           "$( ( load; classify_probe 1 "$LOGX" ) )" "sqlite"
+
+check "segv 有人话解释" "$( ( load; describe_probe segv | grep -c SIGSEGV ) )" "1"
+
+# ---------------------------------------------------------------- journal 信号识别
+printf '\n[11] systemd 日志里的崩溃信号\n'
+SEGV_LOG="$WORK/journal-segv.txt"
+cat > "$SEGV_LOG" <<'EOF'
+Oct 21 16:13:51 srv systemd[1]: Started fitlog.service - FitLog 健身训练记录.
+Oct 21 16:13:51 srv systemd[1]: fitlog.service: Main process exited, code=killed, status=11/SEGV
+Oct 21 16:13:51 srv systemd[1]: fitlog.service: Failed with result 'signal'.
+EOF
+check "status=11/SEGV → segv" "$( ( load; journal_crash_reason < "$SEGV_LOG" ) )" "segv"
+printf 'fitlog.service: Main process exited, code=killed, status=7/BUS\n' > "$WORK/j2.txt"
+check "status=7/BUS → sigbus"  "$( ( load; journal_crash_reason < "$WORK/j2.txt" ) )" "sigbus"
+printf 'fitlog.service: Failed to start FitLog\n' > "$WORK/j3.txt"
+check "普通失败 → 空"         "$( ( load; journal_crash_reason < "$WORK/j3.txt" ) )" ""
+
+# ---------------------------------------------------------------- 硬闸门
+printf '\n[12] 原生模块硬闸门（不再假装成功）\n'
+( load
+  check_native_modules() { return 1; }        # 第一次就不行
+  repair_native_modules() { return 0; }       # 修复成功
+  NATIVE_FAIL_REASON=segv
+  verify_native_or_die "$WORK/x.log" >/dev/null 2>&1
+  echo $? > "$WORK/g1.txt"
+)
+check "修复成功 → 放行" "$(cat "$WORK/g1.txt")" "0"
+
+( load
+  check_native_modules() { return 1; }
+  repair_native_modules() { return 1; }
+  NATIVE_FAIL_REASON=segv
+  explain_native_failure() { :; }
+  die() { return 1; }
+  verify_native_or_die "$WORK/x.log" >/dev/null 2>&1
+  echo $? > "$WORK/g2.txt"
+)
+check "修不好 → 不放行" "$(cat "$WORK/g2.txt")" "1"
+
+# 安装依赖成功但原生模块坏掉时，install_deps 必须失败（以前会静默返回 0）
+( load
+  mkdir -p "$WORK/app5"; : > "$WORK/app5/package.json"
+  INSTALL_DIR="$WORK/app5"
+  npm_install() { return 0; }
+  verify_native_or_die() { return 1; }
+  install_deps >/dev/null 2>&1
+)
+echo $? > "$WORK/g3.txt"
+check "依赖坏了 → install_deps 非 0" "$(cat "$WORK/g3.txt")" "1"
+
 # ---------------------------------------------------------------- 汇总
 printf '\n== 结果 ==\n通过 %d 项，失败 %d 项\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] && { printf '全部通过 ✓\n\n'; exit 0; }

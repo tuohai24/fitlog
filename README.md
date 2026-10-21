@@ -181,18 +181,20 @@ FitLog 管理菜单   /opt/fitlog
 
 | 缺什么 | 脚本怎么做 |
 | --- | --- |
-| Node.js（没有，或 < 20） | Linux 直接下官方二进制解压到 `/usr/local`（没 root 就 `~/.local`）并重建软链；macOS 走 `brew install node`；都失败再退发行版仓库。下载源依次试 nodejs.org → npmmirror，带 SHA256 校验 |
+| Node.js（没有，或 < 22） | Linux 直接下官方二进制解压到 `/usr/local`（没 root 就 `~/.local`）并重建软链；macOS 走 `brew install node`；都失败再退发行版仓库。下载源依次试 nodejs.org → npmmirror，带 SHA256 校验 |
 | curl / tar / xz | 按发行版自动装（apt / dnf / yum / zypper / pacman / apk / brew 都支持） |
 | python3 / make / g++ | `better-sqlite3` 是原生模块，缺工具链时自动装整套；有预编译包时即使缺也不影响 |
 | npm 源太慢 | 官方源失败后自动换 `registry.npmmirror.com` 重试 |
 | 原生模块编译失败 | 自动补工具链 → `npm_config_build_from_source` 重装 → 再不行单独 `npm rebuild better-sqlite3` |
-| 装完不一定能用 | 最后用 `node -e "require('better-sqlite3')"` 真加载一次，加载不了就继续修，不糊弄 |
+| 装完不一定能用 | 最后**真的 `new` 一个 SQLite 库**（`require` 不触发原生加载）跑一次，加载不了就继续修；修不好直接判定安装失败，不糊弄 |
+| 启动瞬间崩溃 | 启动前做运行时预检（Node / N-API / 原生模块 / 数据目录 WAL / 完整启动）；`status=11/SEGV` 会自动识别为原生模块不兼容并尝试修复 |
 
 - **安装**：`ensure_base_tools → ensure_node → ensure_build_tools → .env → 端口检查 → npm install → 建库 → 启动 → 健康检查`。没有 `.env` 就用 `openssl` 生成随机管理员密码并 `chmod 600`；有 systemd 就装成 `fitlog.service` 并 `enable --now`，没有就 `nohup` 后台跑并写 `.fitlog.pid`；最后轮询 `/api/health` 最多 20 秒，打印访问地址与密码，并汇报「本次自动补装了什么」。
 - **端口冲突自动让路**：启动前先探端口。是自己在跑就重启；被别的程序占着（NAS / 面板很常见）就自动挑一个空闲高位端口（从 `18473` 开始），写回 `.env` 再启动，不会出现「装好了却打不开」。想指定端口用 `./install.sh port 18473`。
-- **启动失败会告诉你原因**：健康检查没通过时，脚本自动打印端口占用情况（`ss -lntp`）+ 最近 20 行日志（systemd 走 `journalctl`），并给出下一步命令，而不是只留一句「没等到响应」。
+- **启动失败会告诉你原因**：健康检查没通过时，脚本自动打印端口占用情况（`ss -lntp`）+ 最近 20 行日志（systemd 走 `journalctl`），并给出下一步命令，而不是只留一句「没等到响应」。日志里出现 `status=11/SEGV` 时会判定为原生模块崩溃，逐段跑探针定位失败点，问一句就自动修复并重启。
+- **运行时预检**：`./install.sh probe` 把启动链路拆成 4 段跑一遍（Node → `new Database()` → 数据目录 WAL → 完整启动），每段单独报「正常 / 具体死因」，是最快的排错入口。
 - **更新**：`git pull --ff-only` → 补工具链 → 重装依赖 → 重启 → 健康检查；`.env` 与 `data/fitlog.db` 不动。
-- **自检**：`./install.sh doctor` 逐项检查系统 / Node / npm / 编译工具链 / curl / 端口 / node_modules / 原生模块 / 数据库 / `.env` 权限 / 磁盘，最后给结论。
+- **自检**：`./install.sh doctor` 逐项检查系统 / C 库 / Node（含 N-API 与 ABI）/ npm / 编译工具链 / curl / 端口 / node_modules / 原生二进制 / 数据库 / 数据目录文件系统类型 / `.env` 权限 / 磁盘，最后跑一遍运行时预检并给结论。
 - **状态**：systemd / 进程状态 + `/api/health` 健康检查 + 数据库体积 + 只读查库统计「账号 / 训练 / 动态 / 留言」条数。
 - **备份**：把 `data/` 与 `.env` 打成 `backups/fitlog-backup-YYYYmmdd-HHMMSS.tar.gz`（WAL 已落盘，可直接打包）。
 - **日志**：systemd 走 `journalctl -u fitlog`，nohup 模式读 `data/fitlog.log`，取最近 60 行。
@@ -219,7 +221,7 @@ bash install.sh uninstall --purge --yes   # 连数据一起删，不确认
 > 例：`PORT=9000 ADMIN_PASSWORD='换个强密码' bash install.sh install --yes`
 > 服务器不允许脚本动系统包时：`bash install.sh install --no-system-install`，它只报告缺什么、不动系统。
 
-### 方式二：直接跑（需 Node.js ≥ 20）
+### 方式二：直接跑（需 Node.js ≥ 22）
 
 ```bash
 git clone https://github.com/tuohai24/fitlog.git
@@ -475,11 +477,23 @@ iOS Safari「分享 → 添加到主屏幕」，Android Chrome「菜单 → 添�
 **Q：`install.sh` 报「依赖安装失败」怎么办？**
 先跑 `./install.sh doctor`，它会逐项告诉你缺什么。最常见的是这三类：
 
-- **缺 Node**：脚本会自动装；如果失败（比如机器完全连不上外网），手动装 Node 20+ 后重跑即可。
+- **缺 Node**：脚本会自动装；如果失败（比如机器完全连不上外网），手动装 Node 22+ 后重跑即可（**不能是 Node 20**，见下一条）。
 - **缺 python3 / make / g++**：`better-sqlite3` 要现场编译。`apt install -y python3 make g++`、`dnf install -y python3 make gcc-c++`、`apk add python3 make g++`。
 - **npm 源超时**：脚本会自动换 `registry.npmmirror.com`；也可以手动指定 `NPM_MIRROR=https://registry.npmmirror.com ./install.sh install`。
 
 日志在 `data/.npm-install.log`（系统包安装在 `data/.pkg-install.log`）。脚本会在失败时按错误关键字给出对应修复命令。
+
+**Q：服务起不来，journalctl 里是 `Main process exited, code=killed, status=11/SEGV`？**
+这是原生模块 `better-sqlite3` 在加载瞬间崩了，跟端口、权限、防火墙都无关，所以日志里除了 systemd 那几行什么都没有。
+
+根因只有一个：**Node 版本太老**。`better-sqlite3` 13 的原生二进制按 N-API 10 编译，而 N-API 10 从 Node 22 才有（Node 20 只有 9）。Node 20 上 `npm install` 只会给一条 EBADENGINE 警告、照样装完，真跑起来就是段错误。
+
+```bash
+./install.sh probe    # 逐段定位：Node / 原生模块 / SQLite / 数据目录 WAL / 完整启动
+./install.sh install  # 会先把 Node 升到 22，再重编原生模块，然后启动
+```
+
+1.1.3 起安装脚本把 Node 最低版本改成 22，并且「原生模块加载不了」会**直接判定安装失败**，不会再出现「装好了但一启动就崩」。如果 `probe` 显示 `数据目录 WAL` 失败，说明安装目录放在了 NAS 同步盘 / 网盘 / FUSE 挂载点上——SQLite 的 WAL 需要本地磁盘，把目录搬到本地再装。
 
 **Q：为什么 `PORT=9000 ./install.sh install` 之后访问的还是 8080？**
 `.env` 已存在时脚本会保留原配置，此时它会问你「要不要把 `.env` 的 `PORT` 改成 9000」——选 y 就同步写进去（`--yes` 模式自动同步），下次重启也生效；选 n 则只在本次运行生效。之所以要同步，是因为 systemd 服务只读 `.env`，不同步会出现「脚本健康检查通过、重启后又回旧端口」。

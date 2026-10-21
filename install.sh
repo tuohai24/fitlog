@@ -10,6 +10,7 @@
 #   ./install.sh port [端口]  换端口（不填则自动挑一个空闲高位端口）
 #   ./install.sh backup       备份数据库与配置
 #   ./install.sh log          查看日志
+#   ./install.sh probe        运行时预检（Node / 原生模块 / 数据库 WAL 能否跑通）
 #   ./install.sh doctor       环境自检（装不上时先跑这个）
 #   ./install.sh uninstall    卸载（默认保留数据）
 #
@@ -26,7 +27,11 @@
 #   NODE_MIRROR           逗号或空格分隔的 Node 下载镜像
 #   NPM_MIRROR            官方 npm 源失败后使用的镜像，默认 registry.npmmirror.com
 #
-# 自动补装清单：curl/tar（下载工具）、Node.js ≥ 20、python3 + make + g++（原生模块编译）
+# 自动补装清单：curl/tar（下载工具）、Node.js ≥ 22、python3 + make + g++（原生模块编译）
+#
+# 注意 Node 最低版本是 22，不是 20：better-sqlite3 13 的原生二进制按 N-API 10 编译，
+# 而 N-API 10 从 Node 22 才开始提供。Node 20 装上不会报错（npm 只给一条 EBADENGINE 警告），
+# 但服务启动时 require 直接段错误（systemd 里就是 status=11/SEGV），日志里一个字都没有。
 #
 set -uo pipefail
 
@@ -45,7 +50,10 @@ ASSUME_YES=0
 PURGE=0
 COMMAND=""
 NO_SYSTEM_INSTALL=0      # --no-system-install：只报告缺失，不动系统
-NODE_MIN_MAJOR=20
+# better-sqlite3 13 的预编译产物定义了 NAPI_VERSION=10，只有 Node 22+ 才支持。
+# 这条线不能放宽，否则装得进去、跑不起来（启动即 SIGSEGV）。
+NODE_MIN_MAJOR=22
+NODE_MIN_NAPI=10
 NODE_VERSION="${NODE_VERSION:-22}"                       # 自动装 Node 时装哪个大版本
 NPM_MIRROR="${NPM_MIRROR:-https://registry.npmmirror.com}" # 官方源失败时的备用镜像
 NODE_MIRRORS="${NODE_MIRROR:-https://nodejs.org/dist https://npmmirror.com/mirrors/node}"
@@ -144,10 +152,36 @@ set_env_port() {   # $1=新端口：写回 .env（systemd / 重启后都生效�
   PORT="$p"          # 让本次运行的 app_port 立刻读到新值
 }
 
+# 最近日志（systemd 走 journal，否则读 data/fitlog.log）
+recent_log() {   # $1=行数
+  local n="${1:-20}" out=""
+  if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
+    out="$(as_root journalctl -u "$SERVICE_NAME" -n "$n" --no-pager 2>/dev/null)"
+  fi
+  if [ -z "$out" ] && [ -f "$INSTALL_DIR/data/fitlog.log" ]; then
+    out="$(tail -n "$n" "$INSTALL_DIR/data/fitlog.log" 2>/dev/null)"
+  fi
+  printf '%s' "$out"
+}
+
+# 从日志文本里认出「被信号打死」这类崩溃（Node 在这类崩溃里一个字都不会输出）
+journal_crash_reason() {   # 读 stdin
+  local text; text="$(cat 2>/dev/null || true)"
+  case "$text" in
+    *status=11/SEGV*|*signal=SEGV*|*"signal=11"*) printf 'segv'; return ;;
+    *status=7/BUS*|*signal=BUS*|*"signal=7"*)     printf 'sigbus'; return ;;
+    *status=6/ABRT*|*signal=ABRT*|*"signal=6"*)   printf 'abort'; return ;;
+    *status=9/KILL*|*"signal=9"*)                 printf 'killed'; return ;;
+  esac
+  printf ''
+}
+
 # 启动/重启失败时，把「为什么」直接摆出来，而不是只留一句「没等到响应」
+DIAG_RETRIED=0
 diagnose_start_failure() {
   local port="$1"
   title "启动失败的原因"
+
   if port_in_use "$port"; then
     if is_fitlog_on "$port"; then
       warn "端口 $port 上仍有 FitLog 在响应（可能是重复进程 / 旧实例没退干净）"
@@ -161,18 +195,49 @@ diagnose_start_failure() {
     warn "端口 $port 没有任何进程在监听 —— 进程启动后就退出了"
   fi
 
-  say "  ${C_DIM}最近日志：${C_RESET}"
-  if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
-    as_root journalctl -u "$SERVICE_NAME" -n 20 --no-pager 2>/dev/null | sed 's/^/    /'
-  fi
-  if [ -f "$INSTALL_DIR/data/fitlog.log" ]; then
-    tail -n 20 "$INSTALL_DIR/data/fitlog.log" | sed 's/^/    /'
+  local jtext; jtext="$(recent_log 25)"
+  local crash; crash="$(printf '%s\n' "$jtext" | journal_crash_reason)"
+
+  # status=11/SEGV 这类信号：不是「起得慢」，是启动瞬间就崩了，先定位再修
+  if [ -n "$crash" ]; then
+    say ""
+    warn "进程被信号打死：$(describe_probe "$crash")"
+    say "  ${C_DIM}这种情况 Node 来不及写任何日志，所以上面只有 systemd 的几行。${C_RESET}"
+    if [ "$DIAG_RETRIED" -eq 0 ]; then
+      say "  ${C_DIM}用探针逐段跑一遍启动链路，定位到底死在哪一步：${C_RESET}"
+      if ! probe_runtime fast; then
+        say ""
+        say "  ${C_BOLD}失败点：${PROBE_FAILED_STEP:-未知} → $(describe_probe "${PROBE_FAILED_WHY:-error}")${C_RESET}"
+        advise_probe "${PROBE_FAILED_WHY:-error}"
+        DIAG_RETRIED=1
+        say ""
+        if confirm "现在就自动修复并重启一次？"; then
+          if repair_native_modules ""; then
+            if start_app && wait_health; then
+              print_access
+              return 0
+            fi
+            warn "修复后仍然启动失败"
+          else
+            explain_native_failure
+          fi
+        fi
+      else
+        warn "预检各项都通过 —— 说明差异在 systemd 环境（.env / 权限 / 资源限制）"
+        say "  ${C_DIM}对比一下：su -s /bin/sh -c 'cd $INSTALL_DIR && $(command -v node) --env-file=.env server/index.js'${C_RESET}"
+      fi
+    fi
   fi
 
   say ""
-  say "  换一个不常用的高位端口再试："
-  say "    ${C_BOLD}./install.sh port${C_RESET}          # 自动挑一个空闲高位端口"
-  say "    ${C_BOLD}./install.sh port 18473${C_RESET}    # 或者自己指定"
+  say "  ${C_DIM}最近日志：${C_RESET}"
+  printf '%s\n' "$jtext" | sed 's/^/    /'
+
+  say ""
+  say "  下一步："
+  say "    ${C_BOLD}./install.sh doctor${C_RESET}         # 环境 + 运行时全量自检（含 N-API / C 库 / 数据目录）"
+  say "    ${C_BOLD}./install.sh port${C_RESET}           # 自动挑一个空闲高位端口再试"
+  say "    ${C_BOLD}./install.sh port 18473${C_RESET}     # 或者自己指定端口"
 }
 
 # 端口被别的程序占着就自动挪到高位端口；返回 1 表示挪不了
@@ -354,12 +419,18 @@ ensure_build_tools() {
 }
 
 # ---------------------------------------------------------------- Node
-node_major() { node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
-node_minor() { node -p 'process.versions.node.split(".")[1]' 2>/dev/null || echo 0; }
+num_or_zero() { case "${1:-}" in ''|*[!0-9]*) printf '0' ;; *) printf '%s' "$1" ;; esac; }
+node_major() { num_or_zero "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null)"; }
+node_minor() { num_or_zero "$(node -p 'process.versions.node.split(".")[1]' 2>/dev/null)"; }
+node_napi()  { num_or_zero "$(node -p 'process.versions.napi || 0' 2>/dev/null)"; }
+
+# 原生模块能不能加载，只取决于 Node 的 N-API 版本，与 ABI（NODE_MODULE_VERSION）无关
+node_napi_ok() { [ "$(node_napi)" -ge "$NODE_MIN_NAPI" ] 2>/dev/null; }
 
 node_ok() {
   need_cmd node || return 1
   [ "$(node_major)" -ge "$NODE_MIN_MAJOR" ] 2>/dev/null || return 1
+  return 0
 }
 
 node_arch() {
@@ -468,7 +539,8 @@ ensure_node() {
   fi
 
   if need_cmd node; then
-    warn "当前 Node $(node -v) 低于 ${NODE_MIN_MAJOR}，需要升级"
+    warn "当前 Node $(node -v) 低于 ${NODE_MIN_MAJOR}（N-API $(node_napi) < ${NODE_MIN_NAPI}），必须升级"
+    say "  ${C_DIM}better-sqlite3 13 的原生二进制按 N-API ${NODE_MIN_NAPI} 编译，Node 20 装上就会启动即段错误${C_RESET}"
   else
     warn "没有找到 Node.js"
   fi
@@ -595,15 +667,112 @@ EOF
 }
 
 # ---------------------------------------------------------------- 依赖与数据
-# better-sqlite3 装完能不能用，取决于二进制的 ABI 是否匹配当前 Node
+# 探针日志目录（临时文件，每次预检前清空）
+probe_dir() {
+  local d="$INSTALL_DIR/data/.probe"
+  mkdir -p "$d" 2>/dev/null || d="/tmp/fitlog-probe-$$"
+  mkdir -p "$d" 2>/dev/null || true
+  printf '%s' "$d"
+}
+
+# 把「退出码 + 输出」翻译成可读的原因码。
+# 这一段是整个诊断的核心：SIGSEGV 这类崩溃在日志里没有任何文字，
+# 只能靠退出码（128+信号值）和几条特征串来区分。
+#   $1=退出码  $2=输出文件
+classify_probe() {
+  local rc="${1:-0}" log="${2:-}"
+  if [ "$rc" -eq 0 ]; then printf 'ok'; return; fi
+  if [ "$rc" -eq 124 ]; then printf 'timeout'; return; fi
+  if [ "$rc" -gt 128 ]; then
+    case $((rc - 128)) in
+      11) printf 'segv' ;;
+      7)  printf 'sigbus' ;;
+      6)  printf 'abort' ;;
+      9)  printf 'killed' ;;
+      *)  printf 'signal' ;;
+    esac
+    return
+  fi
+  [ -f "$log" ] || { printf 'error'; return; }
+  if grep -qiE 'NODE_MODULE_VERSION|was compiled against a different Node' "$log" 2>/dev/null; then printf 'abi'; return; fi
+  if grep -qiE 'GLIBC_[0-9]|GLIBCXX_[0-9]|libstdc\+\+' "$log" 2>/dev/null; then printf 'glibc'; return; fi
+  if grep -qiE 'invalid ELF header|wrong ELF class|cannot open shared object|undefined symbol' "$log" 2>/dev/null; then printf 'elf'; return; fi
+  if grep -qiE 'Cannot find module|MODULE_NOT_FOUND' "$log" 2>/dev/null; then printf 'missing'; return; fi
+  if grep -qiE 'EADDRINUSE' "$log" 2>/dev/null; then printf 'eaddrinuse'; return; fi
+  if grep -qiE 'SQLITE_BUSY|database is locked' "$log" 2>/dev/null; then printf 'busy'; return; fi
+  if grep -qiE 'SQLITE_|file is not a database|database disk image is malformed' "$log" 2>/dev/null; then printf 'sqlite'; return; fi
+  if grep -qiE 'EACCES|EPERM|permission denied' "$log" 2>/dev/null; then printf 'perm'; return; fi
+  printf 'error'
+}
+
+# 原因码 → 人话（含下一步怎么做）
+describe_probe() {
+  case "$1" in
+    ok)        printf '正常' ;;
+    segv)      printf 'SIGSEGV 段错误（exit 139）' ;;
+    sigbus)    printf 'SIGBUS（exit 135，常见于 mmap 失败：数据目录在网络盘 / FUSE 上）' ;;
+    abort)     printf 'SIGABRT 主动崩溃（exit 134）' ;;
+    killed)    printf '被 SIGKILL 杀掉（exit 137，多半是内存不足）' ;;
+    timeout)   printf '超时未退出' ;;
+    signal)    printf '被信号终止' ;;
+    abi)       printf 'ABI 不匹配（原生模块与当前 Node 版本不一致）' ;;
+    glibc)     printf 'C 库版本不满足（缺 GLIBC / GLIBCXX 符号）' ;;
+    elf)       printf '二进制与当前平台/架构不匹配' ;;
+    missing)   printf '模块没装上（Cannot find module）' ;;
+    eaddrinuse) printf '端口已被占用（EADDRINUSE）' ;;
+    busy)      printf '数据库被锁（SQLITE_BUSY，多半是同一份 data/ 被两个后端同时打开）' ;;
+    sqlite)    printf '数据库文件损坏或不是有效数据库' ;;
+    perm)      printf '权限不足' ;;
+    *)         printf '未知错误' ;;
+  esac
+}
+
+# 原因码 → 修复建议
+advise_probe() {
+  case "$1" in
+    segv|abi|missing|elf)
+      say "  ${C_DIM}原生模块 better-sqlite3 与当前 Node 不兼容。最常见的原因：${C_RESET}"
+      say "  ${C_DIM}better-sqlite3 13 的原生二进制按 N-API 10 编译，需要 Node 22+；${C_RESET}"
+      say "  ${C_DIM}Node 20 装得上、跑不起来，启动瞬间就是段错误。${C_RESET}"
+      say "  ${C_DIM}执行 ./install.sh install 会自动把 Node 升到 22 并重编原生模块。${C_RESET}" ;;
+    glibc)
+      say "  ${C_DIM}系统 C 库太老，官方预编译包跑不了；需要在本机源码编译：${C_RESET}"
+      say "  ${C_DIM}./install.sh install 会尝试（要 python3 + make + g++）${C_RESET}" ;;
+    sigbus|busy)
+      say "  ${C_DIM}数据目录必须放在本地磁盘。放进 NAS 同步目录 / 网盘 / FUSE 挂载点时，${C_RESET}"
+      say "  ${C_DIM}SQLite 的 WAL 共享内存无法工作，进程会崩或被锁住。${C_RESET}" ;;
+    sqlite)
+      say "  ${C_DIM}先备份 data/ 再让 SQLite 自检：./install.sh backup，然后删除损坏的 fitlog.db-wal${C_RESET}" ;;
+    perm)
+      say "  ${C_DIM}确认运行用户对 $INSTALL_DIR/data 有读写权限${C_RESET}" ;;
+    eaddrinuse)
+      say "  ${C_DIM}换端口：./install.sh port${C_RESET}" ;;
+  esac
+}
+
+# better-sqlite3 能不能被「真正会运行服务的那个 node」加载
+# 注意两个坑：
+#   1. 不能只看 npm 的退出码 —— npm 对 engines 不匹配只给一条 EBADENGINE 警告；
+#   2. 不能只 require —— better-sqlite3 13 的 .node 是懒加载的，
+#      require 只是拿到一个包装函数，真正 dlopen 发生在第一次 new Database() 时。
+#      所以必须真的建一个库，否则 ABI/N-API 不兼容时这里会「假通过」，服务启动才段错误。
 check_native_modules() {
   local dir="$INSTALL_DIR/node_modules/better-sqlite3"
-  [ -d "$dir" ] || { warn "node_modules 里没有 better-sqlite3"; return 1; }
-  if ( cd "$INSTALL_DIR" && node -e 'require("better-sqlite3")' >/dev/null 2>&1 ); then
-    ok "原生模块可正常加载（better-sqlite3）"
+  NATIVE_FAIL_REASON=""
+  [ -d "$dir" ] || { warn "node_modules 里没有 better-sqlite3"; NATIVE_FAIL_REASON="missing"; return 1; }
+
+  local log rc
+  log="$(probe_dir)/native-load.log"
+  ( cd "$INSTALL_DIR" && node -e 'const D=require("better-sqlite3");const db=new D(":memory:");db.prepare("select 1 as n").get();db.close()' ) >"$log" 2>&1
+  rc=$?
+  local why; why="$(classify_probe "$rc" "$log")"
+  if [ "$why" = "ok" ]; then
+    ok "原生模块可正常加载（better-sqlite3，Node $(node -v) / N-API $(node_napi)）"
     return 0
   fi
-  warn "better-sqlite3 存在但加载失败（多半是编译产物与当前 Node 不匹配）"
+  NATIVE_FAIL_REASON="$why"
+  warn "better-sqlite3 存在但加载失败：$(describe_probe "$why")"
+  if [ -s "$log" ]; then tail -n 6 "$log" | sed 's/^/    /'; fi
   return 1
 }
 
@@ -624,7 +793,7 @@ install_deps() {
   # 1) 默认源
   if npm_install "$log"; then
     ok "依赖安装完成"
-    check_native_modules || rebuild_native "$log"
+    verify_native_or_die "$log" || die "原生模块不可用，安装中止"
     return 0
   fi
   warn "第一次 npm install 失败，日志最后 15 行（$log）："
@@ -641,7 +810,7 @@ install_deps() {
     if npm_install "$log" --registry="$NPM_MIRROR"; then
       ok "依赖安装完成（镜像源）"
       note_installed "npm 依赖（镜像源）"
-      check_native_modules || rebuild_native "$log"
+      verify_native_or_die "$log" || die "原生模块不可用，安装中止"
       return 0
     fi
     tail -n 15 "$log" | sed 's/^/    /'
@@ -656,7 +825,7 @@ install_deps() {
           --registry="${NPM_MIRROR:-https://registry.npmjs.org}" ) >"$log" 2>&1; then
       ok "依赖安装完成（源码编译）"
       note_installed "npm 依赖（源码编译）"
-      check_native_modules || rebuild_native "$log"
+      verify_native_or_die "$log" || die "原生模块不可用，安装中止"
       return 0
     fi
     tail -n 25 "$log" | sed 's/^/    /'
@@ -691,18 +860,239 @@ explain_npm_failure() {
 }
 
 # 单独重编原生模块（比整包重装快很多）
+# better-sqlite3 13 装的是「预编译包」：prebuilds/<平台>-<架构>.node。
+# 只要这个文件在，lib/binding.js 就优先加载它，源码编译出来的 build/Release 根本不会被用到。
+# 所以「源码重编」必须先把它移走，否则编了也白编（这正是之前明明重编过、启动仍段错误的原因）。
+native_dir() { printf '%s/node_modules/better-sqlite3' "$INSTALL_DIR"; }
+
+node_gyp() {   # npm 自带的 node-gyp 都能用，不依赖全局安装
+  if need_cmd node-gyp; then node-gyp "$@"; return $?; fi
+  local gyp npm_bin
+  npm_bin="$(readlink -f "$(command -v npm 2>/dev/null)" 2>/dev/null || command -v npm 2>/dev/null)"
+  if [ -n "$npm_bin" ]; then
+    gyp="$(dirname "$npm_bin")/../lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js"
+    if [ -f "$gyp" ]; then node "$gyp" "$@"; return $?; fi
+  fi
+  gyp="$(npm root -g 2>/dev/null)/npm/node_modules/node-gyp/bin/node-gyp.js"
+  if [ -f "$gyp" ]; then node "$gyp" "$@"; return $?; fi
+  return 127
+}
+
+node_prefix() {   # Node 安装前缀（官方二进制包里带 include/node 头文件）
+  local real
+  real="$(readlink -f "$(command -v node 2>/dev/null)" 2>/dev/null || command -v node 2>/dev/null)"
+  [ -n "$real" ] && dirname "$(dirname "$real")"
+}
+
 rebuild_native() {
   local log="${1:-$INSTALL_DIR/data/.npm-install.log}"
-  [ -d "$INSTALL_DIR/node_modules/better-sqlite3" ] || return 1
-  warn "单独重编 better-sqlite3（--build-from-source）"
-  if ( cd "$INSTALL_DIR" && npm rebuild better-sqlite3 --build-from-source ) >>"$log" 2>&1; then
+  local dir; dir="$(native_dir)"
+  [ -d "$dir" ] || return 1
+
+  local pre="$dir/prebuilds"
+  if [ -d "$pre" ] && [ ! -d "${pre}.bak" ]; then
+    mv "$pre" "${pre}.bak" 2>/dev/null \
+      && say "  ${C_DIM}已把预编译包改名（prebuilds → prebuilds.bak），让源码编译真正生效${C_RESET}"
+  fi
+
+  warn "在本机源码编译 better-sqlite3（需要 python3 + make + g++）"
+  if ( cd "$dir" && node_gyp rebuild ) >>"$log" 2>&1; then
     if check_native_modules; then
       note_installed "better-sqlite3（本地编译）"
       return 0
     fi
   fi
+
+  # 官方二进制安装的 Node 自带头文件，离线也能编：指定 --nodedir 再试一次
+  local prefix; prefix="$(node_prefix)"
+  if [ -n "$prefix" ] && [ -d "$prefix/include/node" ]; then
+    say "  ${C_DIM}再试一次，用本地头文件：--nodedir=$prefix${C_RESET}"
+    if ( cd "$dir" && node_gyp rebuild --nodedir="$prefix" ) >>"$log" 2>&1; then
+      if check_native_modules; then
+        note_installed "better-sqlite3（本地编译，本地头文件）"
+        return 0
+      fi
+    fi
+  fi
+
+  # 编译不成，把预编译包放回去，别留下半残状态
+  if [ -d "${pre}.bak" ] && [ ! -d "$pre" ]; then mv "${pre}.bak" "$pre" 2>/dev/null || true; fi
   tail -n 20 "$log" 2>/dev/null | sed 's/^/    /'
   return 1
+}
+
+# ---------------------------------------------------------------- 运行时预检
+# 为什么需要这一节：
+#   npm install 成功 ≠ 服务能跑。原生模块加载失败时 npm 只给一条 EBADENGINE 警告，
+#   进程则在 require 那一刻被信号打死（SIGSEGV），systemd 只留下 status=11/SEGV，
+#   日志里一个字都没有，看起来就像「端口没监听」。
+# 所以安装 / 更新 / 重启之前，都用「服务真正会用的那个 node」把启动链路逐段跑一遍。
+
+# $1=超时秒 $2=日志文件；其余=要执行的命令（必须是外部命令，不能是 shell 函数）
+run_capped() {
+  local secs="$1" log="$2"; shift 2
+  if need_cmd timeout; then
+    timeout -k 2 "$secs" "$@" >"$log" 2>&1
+    return $?
+  fi
+  "$@" >"$log" 2>&1 &
+  local pid=$!
+  ( sleep "$secs"; kill -9 "$pid" 2>/dev/null ) >/dev/null 2>&1 &
+  local watcher=$!
+  wait "$pid"; local rc=$?
+  kill "$watcher" 2>/dev/null || true
+  wait "$watcher" 2>/dev/null || true
+  return $rc
+}
+
+# 在安装目录里跑一条命令（等价于 systemd 的 WorkingDirectory）
+in_dir() {   # $1=超时 $2=日志；其余=命令
+  local secs="$1" log="$2"; shift 2
+  ( cd "$INSTALL_DIR" || exit 1; run_capped "$secs" "$log" "$@" )
+}
+
+PROBE_FAILED_STEP=""
+PROBE_FAILED_WHY=""
+
+# 执行一个探针并把结果打出来；失败时记住是哪一步
+probe_check() {   # $1=名称 $2=超时 $3=日志名；其余=命令
+  local name="$1" secs="$2" tag="$3"; shift 3
+  local log; log="$(probe_dir)/${tag}.log"
+  local rc=0
+  in_dir "$secs" "$log" "$@" || rc=$?
+  local why; why="$(classify_probe "$rc" "$log")"
+  if [ "$why" = "ok" ]; then
+    printf '  %s✓%s %s：%s\n' "$C_GREEN" "$C_RESET" "$name" "正常"
+    return 0
+  fi
+  printf '  %s✗%s %s：%s\n' "$C_RED" "$C_RESET" "$name" "$(describe_probe "$why")"
+  if [ -s "$log" ]; then tail -n 8 "$log" | sed 's/^/      /'; fi
+  PROBE_FAILED_STEP="$name"
+  PROBE_FAILED_WHY="$why"
+  return 1
+}
+
+# 完整启动一次（用临时数据目录 + 随机端口，不碰真实数据库）
+# 看到「已启动」就立刻收工，不必等到超时
+probe_boot() {
+  local log; log="$(probe_dir)/boot.log"
+  local tmp; tmp="$(probe_dir)/bootapp"
+  mkdir -p "$tmp" 2>/dev/null || true
+
+  ( cd "$INSTALL_DIR" && exec env DATA_DIR="$tmp" PORT=0 node $(node_env_args) server/index.js ) >"$log" 2>&1 &
+  local pid=$!
+  local i=0 booted=0
+  # 首次启动要建库 + 导入动作库，慢一点的 NAS 可能要十几秒，给到 30 秒
+  while [ "$i" -lt 30 ]; do
+    if grep -q '已启动' "$log" 2>/dev/null; then booted=1; break; fi
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 1; i=$((i + 1))
+  done
+
+  if [ "$booted" -eq 1 ]; then
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    printf '  %s✓%s %s：%s\n' "$C_GREEN" "$C_RESET" "完整启动" "正常"
+    return 0
+  fi
+
+  local rc=0
+  kill -0 "$pid" 2>/dev/null && { kill -9 "$pid" 2>/dev/null || true; }
+  wait "$pid" 2>/dev/null || rc=$?
+  local why; why="$(classify_probe "$rc" "$log")"
+  printf '  %s✗%s %s：%s\n' "$C_RED" "$C_RESET" "完整启动" "$(describe_probe "$why")"
+  if [ -s "$log" ]; then tail -n 8 "$log" | sed 's/^/      /'; fi
+  PROBE_FAILED_STEP="完整启动"
+  PROBE_FAILED_WHY="$why"
+  return 1
+}
+
+# $1=fast（只查模块）| full（连完整启动一起查）
+probe_runtime() {
+  local mode="${1:-fast}"
+  title "运行时预检"
+  local dir; dir="$(probe_dir)"; rm -rf "$dir"/* 2>/dev/null || true
+  PROBE_FAILED_STEP=""; PROBE_FAILED_WHY=""
+
+  say "  Node：$(node -v 2>/dev/null)  ·  N-API $(node_napi)  ·  ABI $(node -p 'process.versions.modules' 2>/dev/null)  ·  $(command -v node)"
+
+  # N-API 是最硬的限制：better-sqlite3 13 的二进制按 N-API 10 编译，Node 22 才有
+  if ! node_napi_ok; then
+    printf '  %s✗%s %s：%s\n' "$C_RED" "$C_RESET" "Node 的 N-API 版本" \
+      "$(node_napi)（需要 ≥ ${NODE_MIN_NAPI}，即 Node ${NODE_MIN_MAJOR}+）"
+    PROBE_FAILED_STEP="N-API"; PROBE_FAILED_WHY="napi"
+    return 1
+  fi
+
+  # 必须真的 new 一个库：better-sqlite3 13 在 require 阶段不加载 .node，
+  # 只 require 会让不兼容的二进制「假通过」，服务启动时才段错误
+  probe_check "原生模块 / SQLite" 20 native-load \
+    node -e 'const D=require("better-sqlite3");const db=new D(":memory:");db.pragma("journal_mode = WAL");db.exec("create table t(x)");db.prepare("insert into t values (1)").run();if(db.prepare("select count(*) as n from t").get().n!==1)process.exit(5);db.close()' || return 1
+
+  # 数据目录必须支持 WAL 的共享内存（mmap）。NAS 同步目录 / 网盘 / FUSE 挂载点在这一步会崩。
+  probe_check "数据目录 WAL" 20 wal-dir \
+    env PROBE_DB="$INSTALL_DIR/data/.probe-wal.db" node -e 'const fs=require("fs"),D=require("better-sqlite3"),f=process.env.PROBE_DB;for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}const db=new D(f);const mode=db.pragma("journal_mode = WAL",{simple:true});db.exec("create table t(x)");db.prepare("insert into t values (1)").run();db.pragma("wal_checkpoint(TRUNCATE)");db.close();for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}if(String(mode).toLowerCase()!=="wal"){console.error("journal_mode="+mode);process.exit(3)}console.log("journal_mode=wal")' || return 1
+
+  # 真实数据库能不能打开、有没有损坏（不存在就跳过）
+  if [ -f "$INSTALL_DIR/data/fitlog.db" ]; then
+    probe_check "现有数据库可读" 20 db-check \
+      env PROBE_DB="$INSTALL_DIR/data/fitlog.db" node -e 'const D=require("better-sqlite3"),f=process.env.PROBE_DB;const db=new D(f,{readonly:true,fileMustExist:true});const r=db.pragma("quick_check",{simple:true});if(String(r).toLowerCase()!=="ok"){console.error("quick_check="+r);process.exit(4)}console.log("quick_check=ok")' || return 1
+  fi
+
+  if [ "$mode" = "full" ]; then
+    probe_boot || return 1
+  fi
+
+  ok "预检通过：当前环境可以正常启动"
+  return 0
+}
+
+# 修复原生模块：先解决 Node 版本，再源码重编，最后整包重装
+repair_native_modules() {
+  local log="${1:-$INSTALL_DIR/data/.npm-install.log}"
+  title "修复原生模块"
+
+  # 1) N-API 不够：怎么重编都没用，必须先把 Node 升级
+  if ! node_napi_ok; then
+    warn "当前 Node $(node -v) 的 N-API 是 $(node_napi)，better-sqlite3 需要 ≥ ${NODE_MIN_NAPI}"
+    say "  ${C_DIM}N-API ${NODE_MIN_NAPI} 从 Node ${NODE_MIN_MAJOR} 开始提供（Node 20 只有 9），先升级 Node${C_RESET}"
+    ensure_node || return 1
+    if check_native_modules; then
+      ok "换成 Node $(node -v) 之后原生模块已可用（预编译包本身就是 N-API ${NODE_MIN_NAPI}）"
+      return 0
+    fi
+  fi
+
+  # 2) 本机源码重编（会先把预编译包移开）
+  ensure_build_tools || true
+  if rebuild_native "$log"; then
+    ok "better-sqlite3 已用本机工具链重编并通过加载测试"
+    return 0
+  fi
+
+  # 3) 整包重装（换镜像）
+  warn "重装依赖再试一次"
+  if npm_install "$log" --registry="${NPM_MIRROR:-https://registry.npmjs.org}"; then
+    check_native_modules && return 0
+  fi
+  return 1
+}
+
+# 装完/更新完的硬闸门：原生模块加载不了，就别假装装成功了
+verify_native_or_die() {
+  check_native_modules && return 0
+  repair_native_modules "${1:-}" && return 0
+  check_native_modules && return 0
+  explain_native_failure
+  die "原生模块无法加载（$(describe_probe "${NATIVE_FAIL_REASON:-error}")），服务必然启动失败。完整报告：./install.sh doctor"
+}
+
+explain_native_failure() {
+  local why="${NATIVE_FAIL_REASON:-error}"
+  say ""
+  warn "原生模块 better-sqlite3 加载失败：$(describe_probe "$why")"
+  advise_probe "$why"
+  say "  ${C_DIM}详细环境：./install.sh doctor（Node / N-API / C 库 / 二进制文件 / 文件系统 全在里面）${C_RESET}"
 }
 
 prepare_data() {
@@ -739,23 +1129,32 @@ running_pid() {
 }
 
 write_unit() {
-  local env_args node_bin
+  local env_args node_bin node_dir
   env_args="$(node_env_args)"
   node_bin="$(command -v node)"
+  node_dir="$(dirname "$node_bin")"
+  # systemd 的 PATH 极简（可能没有 /usr/local/bin），把 Node 目录明确加进去，
+  # 避免服务里的子进程找不到 node / npm
   as_root tee "$SERVICE_FILE" >/dev/null <<EOF
 [Unit]
 Description=${APP_NAME} 健身训练记录
 Documentation=https://github.com/tuohai24/fitlog
+# 由 install.sh 生成 · Node $(node -v 2>/dev/null) · N-API $(node_napi)
 After=network-online.target
 Wants=network-online.target
+# 连续崩溃 6 次就停下，别无限重启刷日志（失败原因用 ./install.sh doctor 看）
+StartLimitIntervalSec=120
+StartLimitBurst=6
 
 [Service]
 Type=simple
-WorkingDirectory=${INSTALL_DIR}
-ExecStart=${node_bin} ${env_args} server/index.js
+WorkingDirectory="${INSTALL_DIR}"
+ExecStart="${node_bin}" ${env_args} server/index.js
 Environment=NODE_ENV=production
+Environment="PATH=${node_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Restart=always
-RestartSec=3
+RestartSec=5
+LimitNOFILE=65535
 SyslogIdentifier=${SERVICE_NAME}
 
 [Install]
@@ -811,15 +1210,34 @@ stop_app() {
 restart_app() {
   title "重启服务"
   stop_app
+  start_and_verify fast
+}
+
+# 统一入口：先预检（原生模块能不能加载），再启动，再健康检查；
+# 起不来就诊断，必要时自动修一次再重试。
+# $1=full（连完整启动一起预检）| fast（只查原生模块）
+start_and_verify() {
+  local mode="${1:-fast}"
+  PROBE_FAILED_STEP=""; PROBE_FAILED_WHY=""
+
+  if ! probe_runtime "$mode"; then
+    warn "预检没通过（失败点：${PROBE_FAILED_STEP:-未知}），先修再启动"
+    if repair_native_modules ""; then
+      probe_runtime "$mode" || { diagnose_start_failure "$(app_port)"; return 1; }
+    else
+      explain_native_failure
+      diagnose_start_failure "$(app_port)"
+      return 1
+    fi
+  fi
+
   # 旧实例退干净后端口仍被别的程序占着 → 自动换高位端口（写回 .env，systemd 也生效）
   move_to_free_port "$(app_port)" || return 1
   if ! start_app; then
     diagnose_start_failure "$(app_port)"
     return 1
   fi
-  if wait_health; then
-    return 0
-  fi
+  wait_health && return 0
   diagnose_start_failure "$(app_port)"
   return 1
 }
@@ -899,11 +1317,8 @@ cmd_install() {
   install_deps
   prepare_data
   stop_app                       # 清掉可能的旧实例，保证端口和进程都是干净的
-  move_to_free_port "$(app_port)" || true
-  if start_app && wait_health; then
+  if start_and_verify full; then
     print_access
-  else
-    diagnose_start_failure "$(app_port)"
   fi
   title "完成"
   if [ -n "${AUTO_INSTALLED:-}" ]; then
@@ -914,7 +1329,9 @@ cmd_install() {
 
 cmd_update() {
   title "${APP_NAME} 更新"
-  check_node
+  # 这里用 ensure_node 而不是 check_node：老部署很可能是 Node 20，
+  # 直接退出会让用户卡在「想更新却被版本检查挡住」的死胡同里
+  ensure_node
   cd "$INSTALL_DIR" || die "无法进入 $INSTALL_DIR"
 
   if [ -d .git ]; then
@@ -986,7 +1403,8 @@ cmd_status() {
 }
 
 cmd_restart() {
-  check_node
+  need_cmd node || die "没有 Node.js，先执行 ./install.sh install"
+  # 版本不够不在这里挡：交给 start_and_verify 的预检去定位并自动修复
   restart_app && print_access
 }
 
@@ -1054,6 +1472,23 @@ cmd_log() {
   fi
 }
 
+cmd_probe() {
+  title "${APP_NAME} 运行时预检"
+  say "安装目录：$INSTALL_DIR"
+  local okall=0
+  probe_runtime full || okall=1
+  if [ "$okall" -ne 0 ]; then
+    say ""
+    warn "预检没通过：${PROBE_FAILED_STEP:-未知} → $(describe_probe "${PROBE_FAILED_WHY:-error}")"
+    advise_probe "${PROBE_FAILED_WHY:-error}"
+    say ""
+    say "  自动修复并重启：${C_BOLD}./install.sh install${C_RESET}"
+    return 1
+  fi
+  say ""
+  ok "这套环境可以直接跑起服务"
+}
+
 cmd_doctor() {
   title "${APP_NAME} 环境自检"
   local problems=0
@@ -1066,6 +1501,7 @@ cmd_doctor() {
     local pretty; pretty="$(grep -E '^PRETTY_NAME=' /etc/os-release | head -n 1 | cut -d= -f2- | tr -d '"')"
     [ -n "$pretty" ] && say "发行版：   ${pretty}"
   fi
+  if need_cmd ldd; then say "C 库：     $(ldd --version 2>&1 | head -n 1)"; fi
   say "包管理器： $(detect_pkg_mgr)"
   if [ "$IS_ROOT" -eq 1 ]; then say "权限：     root"
   elif need_cmd sudo; then say "权限：     普通用户（有 sudo）"
@@ -1075,8 +1511,12 @@ cmd_doctor() {
   # Node / npm
   if node_ok; then
     ok "Node.js $(node -v)  ($(command -v node))"
-    if [ "$(node_major)" -eq 20 ] && [ "$(node_minor)" -lt 6 ]; then
-      warn "Node 20.6 以下不支持 --env-file，脚本会改用兼容模式启动"
+    say "运行信息： N-API $(node_napi) · ABI $(node -p 'process.versions.modules' 2>/dev/null) · V8 $(node -p 'process.versions.v8' 2>/dev/null)"
+    if ! node_napi_ok; then
+      warn "N-API 版本不足：$(node_napi) < ${NODE_MIN_NAPI}"
+      say "  ${C_DIM}better-sqlite3 13 的原生二进制按 N-API ${NODE_MIN_NAPI} 编译，只有 Node ${NODE_MIN_MAJOR}+ 支持。${C_RESET}"
+      say "  ${C_DIM}Node 20 能装上、跑不起来，启动瞬间就是 SIGSEGV（systemd 日志 status=11/SEGV）。${C_RESET}"
+      problems=$((problems + 1))
     fi
   else
     problems=$((problems + 1))
@@ -1115,7 +1555,21 @@ cmd_doctor() {
   if [ -d "$INSTALL_DIR/node_modules" ]; then
     ok "node_modules 已存在"
     if [ -d "$INSTALL_DIR/node_modules/better-sqlite3" ]; then
-      check_native_modules || problems=$((problems + 1))
+      local bsq_ver bsq_engines
+      bsq_ver="$(grep -m1 '"version"' "$(native_dir)/package.json" 2>/dev/null | sed 's/.*"version"[^"]*"\([^"]*\)".*/\1/')"
+      bsq_engines="$(grep -A2 '"engines"' "$(native_dir)/package.json" 2>/dev/null | grep -oE '"node"[^,}]*' | sed 's/.*"\s*:\s*"\([^"]*\)"/\1/')"
+      say "better-sqlite3：${bsq_ver:-未知}${bsq_engines:+（要求 Node ${bsq_engines}）}"
+
+      # 实际会被加载的那个原生二进制：预编译包 > 本机源码编译
+      local bind
+      bind="$( ( cd "$INSTALL_DIR" && node -e 'const p=require("path");try{const b=require(p.join(process.cwd(),"node_modules/better-sqlite3/lib/binding.js"));process.stdout.write(b.getPrebuildPath()||"")}catch(e){process.stdout.write("")}' ) 2>/dev/null )"
+      if [ -z "$bind" ]; then bind="$(native_dir)/build/Release/better_sqlite3.node"; fi
+      if [ -f "$bind" ]; then
+        say "原生二进制：${bind#"$INSTALL_DIR"/}（$(du -h "$bind" 2>/dev/null | cut -f1)）"
+      else
+        warn "找不到可用的原生二进制（$bind）"
+        problems=$((problems + 1))
+      fi
     else
       warn "缺少 better-sqlite3，重新执行 ./install.sh install"
       problems=$((problems + 1))
@@ -1143,6 +1597,26 @@ cmd_doctor() {
   # 磁盘
   local avail; avail="$(df -h "$INSTALL_DIR" 2>/dev/null | awk 'NR==2 {print $4}')"
   [ -n "$avail" ] && say "磁盘剩余： ${avail}"
+
+  # 数据目录的文件系统：SQLite 的 WAL 需要本地磁盘（共享内存 + mmap）
+  local fstype; fstype="$(stat -f -c %T "$INSTALL_DIR/data" 2>/dev/null || true)"
+  if [ -n "$fstype" ]; then
+    say "数据目录FS：${fstype}"
+    case "$fstype" in
+      nfs*|cifs|smb*|fuse*|fuseblk|9p|glusterfs|ceph)
+        warn "数据目录在共享/网络文件系统上，SQLite 的 WAL 无法可靠工作"
+        say "  ${C_DIM}把安装目录换到本地磁盘（例如 /opt/fitlog），数据搬过去即可${C_RESET}"
+        problems=$((problems + 1)) ;;
+    esac
+  fi
+
+  # 运行时预检：真的把启动链路跑一遍（这才是「能不能起来」的判据）
+  if need_cmd node && [ -d "$INSTALL_DIR/node_modules/better-sqlite3" ]; then
+    if ! probe_runtime fast; then
+      problems=$((problems + 1))
+      say "  ${C_DIM}↑ 这一项就是启动失败的直接原因；./install.sh install 会自动修复${C_RESET}"
+    fi
+  fi
 
   title "结论"
   if [ "$problems" -eq 0 ]; then
@@ -1199,10 +1673,11 @@ ${C_BOLD}${APP_NAME} 管理菜单${C_RESET}   ${C_DIM}${INSTALL_DIR}${C_RESET}
   6) 查看日志
   7) 修改端口            ${C_DIM}端口被占用时换到不常用的高位端口${C_RESET}
   8) 环境自检            ${C_DIM}装不上时先跑这个，逐项告诉你缺什么${C_RESET}
+  p) 运行时预检          ${C_DIM}原生模块 / 数据库能否真的跑起来（启动失败先跑这个）${C_RESET}
   9) 卸载
   0) 退出
 EOF
-    printf '请选择 [0-9]: '
+    printf '请选择 [0-9/p]: '
     local choice
     read -r choice || choice="0"
     case "$choice" in
@@ -1214,6 +1689,7 @@ EOF
       6) cmd_log ;;
       7) cmd_port ;;
       8) cmd_doctor ;;
+      p|P) cmd_probe ;;
       9) cmd_uninstall ;;
       0|"") say "已退出"; return 0 ;;
       *) warn "无效选择：$choice" ;;
@@ -1229,7 +1705,7 @@ for arg in "$@"; do
     --yes|-y) ASSUME_YES=1 ;;
     --purge) PURGE=1 ;;
     --no-system-install) NO_SYSTEM_INSTALL=1 ;;
-    install|update|status|restart|backup|log|logs|doctor|uninstall|menu) COMMAND="$arg" ;;
+    install|update|status|restart|backup|log|logs|probe|doctor|uninstall|menu) COMMAND="$arg" ;;
     port|set-port) COMMAND="port" ;;
     -h|--help)
       sed -n '2,/^set -uo pipefail/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
@@ -1251,6 +1727,7 @@ case "$COMMAND" in
   restart) cmd_restart ;;
   backup) cmd_backup ;;
   log) cmd_log ;;
+  probe) cmd_probe ;;
   doctor) cmd_doctor ;;
   port) cmd_port "${PORT_ARG:-}" ;;
   uninstall) cmd_uninstall ;;

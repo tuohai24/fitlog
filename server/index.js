@@ -1,3 +1,5 @@
+// 必须放在最前：Node 版本不满足时先给出可读报错，而不是让原生模块把进程打死
+import './preflight.js';
 import express from 'express';
 import compression from 'compression';
 import path from 'node:path';
