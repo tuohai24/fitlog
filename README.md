@@ -243,11 +243,39 @@ node --env-file=.env server/index.js
 
 ```bash
 cd fitlog
-cp .env.example .env
+cp .env.example .env          # 至少改掉 ADMIN_PASSWORD
 docker compose up -d --build
+docker compose ps             # 等 STATUS 变成 (healthy)
 ```
 
-数据持久化在 `./data-store/fitlog.db`，重启 / 升级镜像不会丢数据。
+默认映射到宿主机 `18473` 端口（`8080` 常被 NAS / 面板占用），要换端口：
+
+```bash
+FITLOG_PORT=9000 docker compose up -d
+```
+
+打开 `http://服务器IP:18473` 即可。首次启动会自动建库、创建管理员、导入 1285 个动作。
+
+| 用途 | 命令 |
+| --- | --- |
+| 看日志 | `docker compose logs -f --tail 100` |
+| 重启 | `docker compose restart` |
+| 升级 | `git pull && docker compose up -d --build` |
+| 备份 | `tar czf fitlog-$(date +%F).tar.gz data-store/`（数据库全在这里） |
+| 进容器排查 | `docker exec -it fitlog sh` |
+
+> **数据持久化**：`./data-store` bind mount 到容器 `/data`，删容器、换镜像都不影响数据。
+> `.env` 只在构建后作为环境变量注入，**不会被烤进镜像**（`.dockerignore` 已排除）。
+>
+> **不用 Compose 也可以**：
+> ```bash
+> docker build -t fitlog:latest .
+> docker run -d --name fitlog --restart unless-stopped -p 18473:8080 \
+>   -e ADMIN_PASSWORD='你的密码' -e DATA_DIR=/data -v /opt/fitlog/data:/data fitlog:latest
+> ```
+>
+> **国内拉不到基础镜像**：给 Docker 配镜像加速器（`/etc/docker/daemon.json` 里加 `registry-mirrors`），
+> 或在 Dockerfile 首行换成本地可用的 `node:22-bookworm-slim` 镜像地址。
 
 ### 方式四：PM2 常驻
 
@@ -494,6 +522,20 @@ iOS Safari「分享 → 添加到主屏幕」，Android Chrome「菜单 → 添�
 ```
 
 1.1.3 起安装脚本把 Node 最低版本改成 22，并且「原生模块加载不了」会**直接判定安装失败**，不会再出现「装好了但一启动就崩」。如果 `probe` 显示 `数据目录 WAL` 失败，说明安装目录放在了 NAS 同步盘 / 网盘 / FUSE 挂载点上——SQLite 的 WAL 需要本地磁盘，把目录搬到本地再装。
+
+**Q：`Failed to restart fitlog.service: Unit fitlog.service has a bad unit file setting`？**
+journalctl 里会紧跟着一行 `WorkingDirectory= path is not absolute: "/root/fitlog"`。
+
+这是 1.1.3 的一个 bug：生成单元文件时给 `WorkingDirectory=` 加了引号，而 systemd **不会**对 `WorkingDirectory=` 做引号剥离（`ExecStart=` 才会），引号被当成路径的一部分，整个单元直接作废，服务连启动的机会都没有。1.1.4 已修，并新增了单元自检：
+
+```bash
+./install.sh restart     # 重写单元并校验（WORKINGDIR 不带引号 + systemd-analyze verify + 单元里的 Node 必须是 N-API 10）
+```
+
+1.1.4 起还会把「单元里的 Node」和「预检用的 Node」对比一次——这样 `shell 里 node 已经是 22、单元里还是老的 20` 这类隐形崩溃（预检全绿、服务一启就 SIGSEGV）也能直接指出来。想彻底绕开 systemd：`./install.sh restart --no-systemd`。
+
+**Q：`./install.sh probe` 全绿，但 systemd 一启动就 SIGSEGV？**
+预检跑在 shell 里，systemd 跑在另一套环境（空环境 + `.env` + 单元里的 Node）。1.1.4 起 `probe` 最后一步会**用 systemd 的环境原样再起一次**（`env -i` + 单元里的 Node + `--env-file=.env`），这是「应用的问题」和「单元的问题」之间的分界线；同时会把 `dmesg` 里那条 `segfault ... in xxx.node` 打出来，直接点出是哪个二进制炸的。
 
 **Q：为什么 `PORT=9000 ./install.sh install` 之后访问的还是 8080？**
 `.env` 已存在时脚本会保留原配置，此时它会问你「要不要把 `.env` 的 `PORT` 改成 9000」——选 y 就同步写进去（`--yes` 模式自动同步），下次重启也生效；选 n 则只在本次运行生效。之所以要同步，是因为 systemd 服务只读 `.env`，不同步会出现「脚本健康检查通过、重启后又回旧端口」。

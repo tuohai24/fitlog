@@ -18,6 +18,7 @@
 #   --yes                 跳过所有确认
 #   --purge               卸载时连同数据一起删除
 #   --no-system-install   只报告缺什么，不自动装系统包（无网/无权限时用）
+#   --no-systemd          不用 systemd 单元，直接 nohup 后台运行（单元总是报错时用）
 #
 # 环境变量：
 #   FITLOG_DIR            安装目录，默认脚本所在目录
@@ -50,6 +51,7 @@ ASSUME_YES=0
 PURGE=0
 COMMAND=""
 NO_SYSTEM_INSTALL=0      # --no-system-install：只报告缺失，不动系统
+FORCE_NO_SYSTEMD=0       # --no-systemd：不用 systemd 单元，直接 nohup 后台跑
 # better-sqlite3 13 的预编译产物定义了 NAPI_VERSION=10，只有 Node 22+ 才支持。
 # 这条线不能放宽，否则装得进去、跑不起来（启动即 SIGSEGV）。
 NODE_MIN_MAJOR=22
@@ -113,6 +115,20 @@ env_value() {
 # 端口取值顺序要和 node --env-file 保持一致：命令行环境变量 > .env > 默认值
 app_port() {
   if [ -n "${PORT:-}" ]; then printf '%s' "$PORT"; else env_value PORT "$DEFAULT_PORT"; fi
+}
+
+# 应用真正会用的数据目录：环境变量 > .env > 安装目录/data
+# 注意：systemd 启动时 .env 生效，所以探针也必须用同一个目录，
+# 否则会出现「探针测的是本地盘、服务用的是 NAS 目录」这种假通过。
+app_data_dir() {
+  if [ -n "${DATA_DIR:-}" ]; then printf '%s' "$DATA_DIR"; else env_value DATA_DIR "$INSTALL_DIR/data"; fi
+}
+
+fs_type_of() {   # $1=路径 → 文件系统类型（stat 不支持就返回空）
+  local p="$1"
+  [ -e "$p" ] || return 1
+  if stat -f -c %T "$p" 2>/dev/null; then return 0; fi
+  printf ''
 }
 
 port_in_use() {   # $1=端口；有东西在监听就返回 0
@@ -182,6 +198,23 @@ diagnose_start_failure() {
   local port="$1"
   title "启动失败的原因"
 
+  local jtext; jtext="$(recent_log 30)"
+
+  # 0) 单元文件本身有问题：应用根本没被执行，这时候查端口 / 原生模块全是白费
+  local unit_err
+  unit_err="$(printf '%s\n' "$jtext" | grep -iE 'is not absolute|fatal error|bad unit file|Invalid argument' | tail -n 2)"
+  if [ -n "$unit_err" ]; then
+    warn "systemd 拒绝了这个单元文件 —— 应用压根没被执行，不是应用的问题："
+    printf '%s\n' "$unit_err" | sed 's/^/    /'
+    say ""
+    say "  ${C_DIM}当前单元文件里的关键行：${C_RESET}"
+    as_root grep -nE '^(WorkingDirectory|ExecStart|Environment)=' "$SERVICE_FILE" 2>/dev/null | sed 's/^/    /'
+    say ""
+    warn "重写单元并重启：${C_BOLD}./install.sh restart${C_RESET}"
+    say "  ${C_DIM}1.1.4 起不会再给 WorkingDirectory 加引号（systemd 不剥离引号，会当成路径的一部分）${C_RESET}"
+    return 1
+  fi
+
   if port_in_use "$port"; then
     if is_fitlog_on "$port"; then
       warn "端口 $port 上仍有 FitLog 在响应（可能是重复进程 / 旧实例没退干净）"
@@ -195,7 +228,6 @@ diagnose_start_failure() {
     warn "端口 $port 没有任何进程在监听 —— 进程启动后就退出了"
   fi
 
-  local jtext; jtext="$(recent_log 25)"
   local crash; crash="$(printf '%s\n' "$jtext" | journal_crash_reason)"
 
   # status=11/SEGV 这类信号：不是「起得慢」，是启动瞬间就崩了，先定位再修
@@ -203,6 +235,7 @@ diagnose_start_failure() {
     say ""
     warn "进程被信号打死：$(describe_probe "$crash")"
     say "  ${C_DIM}这种情况 Node 来不及写任何日志，所以上面只有 systemd 的几行。${C_RESET}"
+    kernel_segv_hint || true
     if [ "$DIAG_RETRIED" -eq 0 ]; then
       say "  ${C_DIM}用探针逐段跑一遍启动链路，定位到底死在哪一步：${C_RESET}"
       if ! probe_runtime fast; then
@@ -223,8 +256,17 @@ diagnose_start_failure() {
           fi
         fi
       else
-        warn "预检各项都通过 —— 说明差异在 systemd 环境（.env / 权限 / 资源限制）"
-        say "  ${C_DIM}对比一下：su -s /bin/sh -c 'cd $INSTALL_DIR && $(command -v node) --env-file=.env server/index.js'${C_RESET}"
+        # 预检（shell 的 node + shell 的环境）通过，systemd 却崩 → 做对照实验
+        say ""
+        warn "预检各项都通过，但 systemd 一启动就崩 —— 差异只能在运行环境里，原样复现一次："
+        if systemd_repro 25; then
+          warn "用 systemd 的环境复现却能启动 —— 问题在单元文件 / systemd 本身，不在应用"
+          say "  ${C_DIM}./install.sh restart 会重写并校验单元；仍然不行就用 ./install.sh restart --no-systemd${C_RESET}"
+        else
+          say ""
+          say "  ${C_BOLD}systemd 环境下复现到同一个崩溃：$(describe_probe "${PROBE_FAILED_WHY:-error}")${C_RESET}"
+          advise_probe "${PROBE_FAILED_WHY:-error}"
+        fi
       fi
     fi
   fi
@@ -235,9 +277,10 @@ diagnose_start_failure() {
 
   say ""
   say "  下一步："
+  say "    ${C_BOLD}./install.sh probe${C_RESET}          # 运行时预检（含 systemd 环境复现）"
   say "    ${C_BOLD}./install.sh doctor${C_RESET}         # 环境 + 运行时全量自检（含 N-API / C 库 / 数据目录）"
   say "    ${C_BOLD}./install.sh port${C_RESET}           # 自动挑一个空闲高位端口再试"
-  say "    ${C_BOLD}./install.sh port 18473${C_RESET}     # 或者自己指定端口"
+  say "    ${C_BOLD}./install.sh restart --no-systemd${C_RESET}  # 绕过 systemd 直接后台跑（立刻验证是不是单元问题）"
 }
 
 # 端口被别的程序占着就自动挪到高位端口；返回 1 表示挪不了
@@ -1016,6 +1059,17 @@ probe_runtime() {
 
   say "  Node：$(node -v 2>/dev/null)  ·  N-API $(node_napi)  ·  ABI $(node -p 'process.versions.modules' 2>/dev/null)  ·  $(command -v node)"
 
+  # 探针必须用「.env 里那个数据目录」，否则测的是本地盘、服务用的是 NAS 挂载点
+  local ddir; ddir="$(app_data_dir)"
+  local fst; fst="$(fs_type_of "$ddir" 2>/dev/null || true)"
+  say "  数据目录：$ddir${fst:+   （$fst）}"
+  case "$fst" in
+    nfs*|cifs*|smb*|fuse*|9p*|vfat|msdos|exfat|*FAT*|overlayfs)
+      warn "数据目录在 $fst 上 —— SQLite 的 WAL 需要本地磁盘 + 文件锁，这类文件系统上极容易启动即崩"
+      say "  ${C_DIM}把 DATA_DIR 改到本地磁盘（如 $INSTALL_DIR/data）再试${C_RESET}" ;;
+  esac
+  mkdir -p "$ddir" 2>/dev/null || true
+
   # N-API 是最硬的限制：better-sqlite3 13 的二进制按 N-API 10 编译，Node 22 才有
   if ! node_napi_ok; then
     printf '  %s✗%s %s：%s\n' "$C_RED" "$C_RESET" "Node 的 N-API 版本" \
@@ -1031,16 +1085,21 @@ probe_runtime() {
 
   # 数据目录必须支持 WAL 的共享内存（mmap）。NAS 同步目录 / 网盘 / FUSE 挂载点在这一步会崩。
   probe_check "数据目录 WAL" 20 wal-dir \
-    env PROBE_DB="$INSTALL_DIR/data/.probe-wal.db" node -e 'const fs=require("fs"),D=require("better-sqlite3"),f=process.env.PROBE_DB;for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}const db=new D(f);const mode=db.pragma("journal_mode = WAL",{simple:true});db.exec("create table t(x)");db.prepare("insert into t values (1)").run();db.pragma("wal_checkpoint(TRUNCATE)");db.close();for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}if(String(mode).toLowerCase()!=="wal"){console.error("journal_mode="+mode);process.exit(3)}console.log("journal_mode=wal")' || return 1
+    env PROBE_DB="$ddir/.probe-wal.db" node -e 'const fs=require("fs"),D=require("better-sqlite3"),f=process.env.PROBE_DB;for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}const db=new D(f);const mode=db.pragma("journal_mode = WAL",{simple:true});db.exec("create table t(x)");db.prepare("insert into t values (1)").run();db.pragma("wal_checkpoint(TRUNCATE)");db.close();for(const s of ["","-wal","-shm"]){try{fs.rmSync(f+s,{force:true})}catch(e){}}if(String(mode).toLowerCase()!=="wal"){console.error("journal_mode="+mode);process.exit(3)}console.log("journal_mode=wal")' || return 1
 
   # 真实数据库能不能打开、有没有损坏（不存在就跳过）
-  if [ -f "$INSTALL_DIR/data/fitlog.db" ]; then
+  if [ -f "$ddir/fitlog.db" ]; then
     probe_check "现有数据库可读" 20 db-check \
-      env PROBE_DB="$INSTALL_DIR/data/fitlog.db" node -e 'const D=require("better-sqlite3"),f=process.env.PROBE_DB;const db=new D(f,{readonly:true,fileMustExist:true});const r=db.pragma("quick_check",{simple:true});if(String(r).toLowerCase()!=="ok"){console.error("quick_check="+r);process.exit(4)}console.log("quick_check=ok")' || return 1
+      env PROBE_DB="$ddir/fitlog.db" node -e 'const D=require("better-sqlite3"),f=process.env.PROBE_DB;const db=new D(f,{readonly:true,fileMustExist:true});const r=db.pragma("quick_check",{simple:true});if(String(r).toLowerCase()!=="ok"){console.error("quick_check="+r);process.exit(4)}console.log("quick_check=ok")' || return 1
   fi
 
   if [ "$mode" = "full" ]; then
     probe_boot || return 1
+    # 最后一步：完全按 systemd 的环境再起一次（单元里的 node + 空环境 + .env）
+    # 预检全绿但 systemd 起不来时，这一步就是分界线
+    if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
+      systemd_repro 25 || return 1
+    fi
   fi
 
   ok "预检通过：当前环境可以正常启动"
@@ -1128,11 +1187,27 @@ running_pid() {
   rm -f "$f"; return 1
 }
 
+# systemd 的 WorkingDirectory= 不会剥离引号：写 " /root/fitlog" 时引号会被当成
+# 路径的一部分，journal 里就是 `WorkingDirectory= path is not absolute: "/root/fitlog"`，
+# 整个单元作废。所以这一行绝对不能加引号；ExecStart 才支持引号。
 write_unit() {
   local env_args node_bin node_dir
   env_args="$(node_env_args)"
   node_bin="$(command -v node)"
   node_dir="$(dirname "$node_bin")"
+
+  case "$INSTALL_DIR" in
+    *" "*|*"'"*|*'"'*)
+      warn "安装目录含空格或引号：$INSTALL_DIR"
+      say "  ${C_DIM}systemd 的 WorkingDirectory 不支持这种路径，把项目放到不含空格的目录（如 /root/fitlog）再装${C_RESET}"
+      return 1 ;;
+  esac
+  # 单元里写死的 Node 必须就是预检过的那一个，否则会出现「预检通过、服务段错误」
+  if ! node_napi_ok; then
+    warn "当前 Node $(node -v) 的 N-API 是 $(node_napi)（需要 ≥ ${NODE_MIN_NAPI}），不能写进 systemd 单元"
+    return 1
+  fi
+
   # systemd 的 PATH 极简（可能没有 /usr/local/bin），把 Node 目录明确加进去，
   # 避免服务里的子进程找不到 node / npm
   as_root tee "$SERVICE_FILE" >/dev/null <<EOF
@@ -1148,8 +1223,8 @@ StartLimitBurst=6
 
 [Service]
 Type=simple
-WorkingDirectory="${INSTALL_DIR}"
-ExecStart="${node_bin}" ${env_args} server/index.js
+WorkingDirectory=${INSTALL_DIR}
+ExecStart=${node_bin} ${env_args} server/index.js
 Environment=NODE_ENV=production
 Environment="PATH=${node_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Restart=always
@@ -1164,17 +1239,149 @@ EOF
   ok "已写入 systemd 服务：$SERVICE_FILE"
 }
 
-start_app() {
-  cd "$INSTALL_DIR" || { warn "无法进入 $INSTALL_DIR"; return 1; }
-  if [ "$HAS_SYSTEMD" -eq 1 ]; then
-    write_unit
-    as_root systemctl enable "$SERVICE_NAME" >/dev/null 2>&1 || true
-    as_root systemctl restart "$SERVICE_NAME" || { warn "systemctl 启动失败"; return 1; }
-    ok "已通过 systemd 启动：$SERVICE_NAME"
-    return 0
+# 从已写入的单元里取出 ExecStart 的可执行文件
+unit_node_bin() {
+  [ -f "$SERVICE_FILE" ] || return 1
+  local line
+  line="$(grep -E '^ExecStart=' "$SERVICE_FILE" 2>/dev/null | head -n 1)" || return 1
+  [ -n "$line" ] || return 1
+  line="${line#ExecStart=}"
+  case "$line" in
+    \"*) line="${line#\"}"; printf '%s' "${line%%\"*}" ;;
+    *)   printf '%s' "${line%% *}" ;;
+  esac
+}
+
+# 写完单元先自己校验一遍：单元坏了要在「启动失败」之前拦住，
+# 并且说清楚这是单元的问题，不是应用的问题。
+verify_unit() {
+  [ -f "$SERVICE_FILE" ] || { warn "找不到 $SERVICE_FILE"; return 1; }
+  local bad=0 out
+
+  # 1) systemd 不剥离 WorkingDirectory 的引号，带引号 = 非法路径 = 整个单元作废
+  if grep -qE "^WorkingDirectory=.*[\"']" "$SERVICE_FILE" 2>/dev/null; then
+    warn "单元里的 WorkingDirectory 带了引号，systemd 会判定为非法路径"
+    bad=1
   fi
 
-  # 没有 systemd（macOS / 容器）：nohup 后台运行
+  # 2) systemd 自己的语法检查
+  if need_cmd systemd-analyze; then
+    out="$(as_root systemd-analyze verify "$SERVICE_FILE" 2>&1)" || true
+    if printf '%s' "$out" | grep -qiE 'fatal error|is not absolute|bad unit file|Invalid argument'; then
+      warn "systemd 单元语法检查没通过："
+      printf '%s\n' "$out" | grep -iE 'fatal error|is not absolute|bad unit file|Invalid argument' | head -n 3 | sed 's/^/    /'
+      bad=1
+    fi
+  fi
+
+  # 3) 单元里写死的 Node 必须是预检过的那一个。
+  #    这一条专杀「shell 里 node 已经是 22、单元里还是老的 20」这类隐形崩溃：
+  #    preflight 用 shell 的 node 跑得很正常，systemd 一启动就 SIGSEGV。
+  local bin; bin="$(unit_node_bin 2>/dev/null || true)"
+  if [ -z "$bin" ]; then
+    warn "没能从单元里解析出 ExecStart"
+    bad=1
+  else
+    case "$bin" in /*) ;; *) warn "ExecStart 不是绝对路径：$bin"; bad=1 ;; esac
+    if [ -x "$bin" ]; then
+      local v n
+      v="$("$bin" -v 2>/dev/null || echo '?')"
+      n="$("$bin" -p 'process.versions.napi || 0' 2>/dev/null || echo 0)"
+      say "  ${C_DIM}单元使用的 Node：$bin（$v · N-API ${n:-0}）${C_RESET}"
+      if [ "${n:-0}" -lt "$NODE_MIN_NAPI" ] 2>/dev/null; then
+        warn "单元里的 Node N-API 只有 ${n:-0}（需要 ≥ ${NODE_MIN_NAPI}）—— 服务启动即段错误就是这个原因"
+        say "  ${C_DIM}重新执行 ./install.sh install 会把单元指向新 Node${C_RESET}"
+        bad=1
+      fi
+    else
+      warn "单元里的 Node 不存在：$bin"
+      bad=1
+    fi
+  fi
+
+  if [ "$bad" -eq 0 ]; then ok "systemd 单元校验通过"; fi
+  return "$bad"
+}
+
+# 内核日志里的段错误行：会直接点出是哪个 .node / .so 炸的
+kernel_segv_hint() {
+  need_cmd dmesg || return 1
+  local out
+  out="$(as_root dmesg -T 2>/dev/null | grep -iE 'segfault|general protection' | tail -n 3)"
+  [ -n "$out" ] || return 1
+  say "  ${C_DIM}内核记录的崩溃点（能看出是哪个 .node / .so 炸的）：${C_RESET}"
+  printf '%s\n' "$out" | sed 's/^/    /'
+}
+
+# 用和 systemd 一模一样的运行环境再跑一次真实启动：
+#   env -i（空环境）+ 单元里的 PATH + --env-file=.env + 真实 DATA_DIR
+# 只把 PORT 换成空闲高位端口，避免抢端口。
+# 这一步是「应用的问题」和「systemd 单元的问题」之间的分界线。
+systemd_repro() {
+  local secs="${1:-25}"
+  local bin; bin="$(unit_node_bin 2>/dev/null || true)"
+  { [ -n "$bin" ] && [ -x "$bin" ]; } || bin="$(command -v node)"
+  local node_dir; node_dir="$(dirname "$bin")"
+  local log; log="$(probe_dir)/systemd-repro.log"
+  local port; port="$(free_high_port 2>/dev/null || echo 0)"
+
+  ( cd "$INSTALL_DIR" || exit 1
+    exec env -i \
+      NODE_ENV=production \
+      HOME="${HOME:-/root}" \
+      PATH="${node_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+      PORT="$port" \
+      "$bin" $(node_env_args) server/index.js ) >"$log" 2>&1 &
+  local pid=$!
+  local i=0 booted=0
+  while [ "$i" -lt "$secs" ]; do
+    if grep -q '已启动' "$log" 2>/dev/null; then booted=1; break; fi
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 1; i=$((i + 1))
+  done
+
+  if [ "$booted" -eq 1 ]; then
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    ok "用 systemd 的环境原样启动：正常（$("$bin" -v 2>/dev/null)）"
+    return 0
+  fi
+  local rc=0
+  kill -0 "$pid" 2>/dev/null && { kill -9 "$pid" 2>/dev/null || true; }
+  wait "$pid" 2>/dev/null || rc=$?
+  local why; why="$(classify_probe "$rc" "$log")"
+  warn "用 systemd 的环境原样启动：$(describe_probe "$why")"
+  [ -s "$log" ] && tail -n 8 "$log" | sed 's/^/    /'
+  PROBE_FAILED_WHY="$why"
+  return 1
+}
+
+start_app() {
+  cd "$INSTALL_DIR" || { warn "无法进入 $INSTALL_DIR"; return 1; }
+  local use_systemd=0
+  if [ "$HAS_SYSTEMD" -eq 1 ] && [ "${FORCE_NO_SYSTEMD:-0}" -eq 0 ]; then
+    if write_unit && verify_unit; then
+      use_systemd=1
+    else
+      warn "systemd 这条路走不通，改用后台进程启动（功能完全一样，只是没有开机自启）"
+    fi
+  fi
+
+  if [ "$use_systemd" -eq 1 ]; then
+    as_root systemctl enable "$SERVICE_NAME" >/dev/null 2>&1 || true
+    local err; err="$(mktemp 2>/dev/null || printf '/tmp/fitlog-systemctl.err')"
+    if as_root systemctl restart "$SERVICE_NAME" 2>"$err"; then
+      rm -f "$err" 2>/dev/null || true
+      ok "已通过 systemd 启动：$SERVICE_NAME"
+      return 0
+    fi
+    warn "systemctl 启动失败"
+    [ -s "$err" ] && sed 's/^/    /' "$err"
+    rm -f "$err" 2>/dev/null || true
+    return 1
+  fi
+
+  # 没有 systemd（macOS / 容器），或者单元校验没通过：nohup 后台运行
   local pid; pid="$(running_pid)" && { warn "已在运行（PID $pid），先停止"; stop_app; }
   local env_args; env_args="$(node_env_args)"
   nohup node $env_args server/index.js >>"$INSTALL_DIR/data/fitlog.log" 2>&1 &
@@ -1191,12 +1398,17 @@ start_app() {
 }
 
 stop_app() {
+  local stopped=0
   if [ "$HAS_SYSTEMD" -eq 1 ] && [ -f "$SERVICE_FILE" ]; then
     as_root systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
     ok "已停止 systemd 服务"
-    return
+    stopped=1
   fi
-  local pid; pid="$(running_pid)" || { warn "当前没有运行中的进程"; return; }
+  # 兜底：可能还有一个 nohup 起的实例（--no-systemd / 单元坏了时的降级模式）
+  local pid; pid="$(running_pid)" || {
+    [ "$stopped" -eq 1 ] && return
+    warn "当前没有运行中的进程"; return
+  }
   kill "$pid" 2>/dev/null || true
   for _ in 1 2 3 4 5; do
     kill -0 "$pid" 2>/dev/null || break
@@ -1204,7 +1416,7 @@ stop_app() {
   done
   kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
   rm -f "$(pid_file)"
-  ok "已停止（PID $pid）"
+  ok "已停止后台进程（PID $pid）"
 }
 
 restart_app() {
@@ -1705,6 +1917,7 @@ for arg in "$@"; do
     --yes|-y) ASSUME_YES=1 ;;
     --purge) PURGE=1 ;;
     --no-system-install) NO_SYSTEM_INSTALL=1 ;;
+    --no-systemd) FORCE_NO_SYSTEMD=1 ;;
     install|update|status|restart|backup|log|logs|probe|doctor|uninstall|menu) COMMAND="$arg" ;;
     port|set-port) COMMAND="port" ;;
     -h|--help)

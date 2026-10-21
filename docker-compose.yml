@@ -1,17 +1,44 @@
+# FitLog · Docker Compose
+#
+#   docker compose up -d --build        # 首次部署 / 更新（数据在 ./data-store，不会丢）
+#   docker compose logs -f              # 看日志
+#   docker compose ps                   # 健康状态
+#
+# 宿主机端口用 FITLOG_PORT 覆盖，默认 18473（8080 常被 NAS / 面板占用）。
 services:
   fitlog:
     build: .
+    image: fitlog:latest
     container_name: fitlog
     restart: unless-stopped
+    # 让 node 成为 PID 1 的子进程，SIGTERM 能正常传递，优雅退出
+    init: true
     ports:
-      - "8080:8080"
+      - "${FITLOG_PORT:-18473}:8080"
     environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      PORT: "8080"
+      DATA_DIR: /data
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-fitlog}
       SIGNUP_CODE: ${SIGNUP_CODE:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
-      TZ: ${TZ:-Asia/Shanghai}
-      DATA_DIR: /data
     volumes:
+      # 数据库 + 导出临时文件；备份这一个目录就等于备份全部数据
       - ./data-store:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3

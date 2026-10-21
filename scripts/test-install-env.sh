@@ -334,6 +334,53 @@ check "修不好 → 不放行" "$(cat "$WORK/g2.txt")" "1"
 echo $? > "$WORK/g3.txt"
 check "依赖坏了 → install_deps 非 0" "$(cat "$WORK/g3.txt")" "1"
 
+# ---------------------------------------------------------------- systemd 单元
+# 1.1.3 给 WorkingDirectory 加了引号，systemd 不剥离引号，直接判定路径非法：
+#   WorkingDirectory= path is not absolute: "/root/fitlog"
+# 整个单元作废，服务连启动的机会都没有。这一节把这几条钉死。
+printf '\n[13] systemd 单元（WorkingDirectory 不能加引号）\n'
+UNIT="$WORK/fitlog.service"
+( load
+  SERVICE_FILE="$UNIT"
+  as_root() { "$@"; }
+  systemctl() { :; }
+  write_unit >/dev/null 2>&1
+)
+check "单元已生成"                "$( [ -s "$UNIT" ] && echo 1 || echo 0 )" "1"
+check "WorkingDirectory 不带引号"  "$(grep -c '^WorkingDirectory=.*["'"'"']' "$UNIT" 2>/dev/null || true)" "0"
+check "有 StartLimitBurst"        "$(grep -c '^StartLimitBurst=' "$UNIT")" "1"
+check "ExecStart 指向 node"       "$(grep -c '^ExecStart=.*server/index.js' "$UNIT")" "1"
+
+( load
+  SERVICE_FILE="$UNIT"; as_root() { "$@"; }
+  verify_unit >/dev/null 2>&1; echo $? > "$WORK/v1.txt"
+)
+check "正常单元校验通过" "$(cat "$WORK/v1.txt")" "0"
+
+awk '{ if ($0 ~ /^WorkingDirectory=/) print "WorkingDirectory=\"" substr($0,18) "\""; else print }' \
+  "$UNIT" > "$WORK/bad-quote.service"
+( load
+  SERVICE_FILE="$WORK/bad-quote.service"; as_root() { "$@"; }
+  verify_unit >/dev/null 2>&1; echo $? > "$WORK/v2.txt"
+)
+check "带引号的 WorkingDirectory → 校验失败" "$(cat "$WORK/v2.txt")" "1"
+
+printf '#!/bin/sh\nif [ "$1" = "-v" ]; then echo v20.19.0; else echo 9; fi\n' > "$WORK/fake-node"
+chmod +x "$WORK/fake-node" 2>/dev/null || true
+sed "s|^ExecStart=.*|ExecStart=$WORK/fake-node --env-file=.env server/index.js|" \
+  "$UNIT" > "$WORK/old-node.service"
+( load
+  SERVICE_FILE="$WORK/old-node.service"; as_root() { "$@"; }
+  verify_unit >/dev/null 2>&1; echo $? > "$WORK/v3.txt"
+)
+check "单元里的 Node 是 N-API 9 → 校验失败" "$(cat "$WORK/v3.txt")" "1"
+
+# 数据目录必须用 .env 里的那个（否则探针测本地盘、服务跑 NAS 目录）
+printf 'DATA_DIR=/srv/fitlog-data\n' > "$WORK/.env"
+check "app_data_dir 读 .env" "$( ( load; app_data_dir ) )" "/srv/fitlog-data"
+printf 'PORT=19999\n' > "$WORK/.env"
+check "app_port 读 .env"     "$( ( load; app_port ) )" "19999"
+
 # ---------------------------------------------------------------- 汇总
 printf '\n== 结果 ==\n通过 %d 项，失败 %d 项\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] && { printf '全部通过 ✓\n\n'; exit 0; }
