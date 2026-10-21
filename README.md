@@ -138,6 +138,9 @@ fitlog/
 │   ├── reset-data.mjs         # 清空训练 / 计划 / 配置（保留动作库）
 │   └── fetch-font.mjs         # 补齐 PDF 导出用的中文字体
 ├── install.sh                 # 一键安装 / 更新 / 备份 / 卸载（带菜单）
+├── docs/
+│   ├── miniprogram-deploy.md  # 小程序部署教程（域名 HTTPS、白名单、提审发布、与网页端共用同一个库）
+│   └── screenshots/           # README 截图
 ├── assets/fonts/              # PDF 导出用的 Noto Sans SC（SIL OFL，11 MB）
 ├── data/
 │   ├── exercises.json         # 构建产物：动作库
@@ -487,7 +490,7 @@ iOS Safari「分享 → 添加到主屏幕」，Android Chrome「菜单 → 添�
 自己的留言随时能删；作为动态作者，你也能删别人在你动态下的留言（防止刷屏）；管理员可以删任何留言。三种身份之外的人看不到删除按钮，接口也会返回 403。
 
 **Q：小程序和网页是同一套数据吗？**
-是。`fitlog-mp/` 只是另一种客户端，接口地址填同一个后端即可：网页走 HttpOnly Cookie，小程序走 `Authorization: Bearer`，共用同一张 `sessions` 表和同一份数据，手机上分享的训练在网页端也能看到。
+是。`fitlog-mp/` 只是另一种客户端，接口地址填同一个后端即可：网页走 HttpOnly Cookie，小程序走 `Authorization: Bearer`，共用同一张 `sessions` 表和同一份数据，手机上分享的训练在网页端也能看到。部署到线上的完整步骤（域名 HTTPS、小程序后台白名单、提审发布）见 [小程序部署教程](docs/miniprogram-deploy.md)。
 
 **Q：PDF 导出报「缺少中文 PDF 字体」？**
 执行 `npm run fetch:font` 重新拉取字体，或设置 `PDF_FONT_PATH` 指向服务器上已有的中文字体（`.ttf` / `.otf`）。
