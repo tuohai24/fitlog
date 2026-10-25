@@ -49,12 +49,32 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(SHELL_CACHE);
-      // 逐个 add 而不是 addAll：任何一个 404 都不该让整个安装失败
-      await Promise.allSettled(SHELL.map((url) => cache.add(new Request(url, { cache: 'reload' }))));
+      // 逐个预缓存而不是 addAll：addAll 是「全有或全无」，一个 404 就整批失败。
+      // 每个文件还带两次重试——首次安装时网络抖一下，缺的那个模块就会在离线时白屏。
+      const results = await Promise.allSettled(SHELL.map((url) => precacheOne(cache, url)));
+      const failed = SHELL.filter((_, i) => results[i].status !== 'fulfilled' || results[i].value === false);
+      if (failed.length) console.warn('[sw] 预缓存失败：', failed.join(', '));
       await self.skipWaiting();
     })(),
   );
 });
+
+async function precacheOne(cache, url, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(new Request(url, { cache: 'reload' }));
+      if (res.ok) {
+        await cache.put(url, res);
+        return true;
+      }
+      if (res.status === 404 || res.status === 410) return false; // 真不存在，重试没意义
+    } catch {
+      /* 网络抖动，下面重试 */
+    }
+    if (i < retries) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+  }
+  return false;
+}
 
 // ---------------------------------------------------------------- activate
 self.addEventListener('activate', (event) => {
