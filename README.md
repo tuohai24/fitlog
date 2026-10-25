@@ -421,6 +421,36 @@ server {
 ```
 
 
+## 装到手机上（PWA）
+
+网页版本身就是可安装的 PWA，**不需要 App Store、不需要开发者账号**。
+用手机浏览器打开站点，加一次主屏幕，之后就是独立图标、全屏、可离线打开的样子。
+
+- iPhone / iPad：**必须用 Safari**（分享 → 添加到主屏幕）。
+  详细步骤与排错见 **[docs/ios-install.md](docs/ios-install.md)**
+- Android：Chrome 打开后点「安装应用」，或用菜单里的「添加到主屏幕」
+
+| 能力 | 说明 |
+|---|---|
+| 独立图标 + 全屏无地址栏 | `manifest` + `apple-mobile-web-app-capable` |
+| 断网打开 | Service Worker 预缓存 26 个 app shell 文件 |
+| 断网看动图 | 看过的 GIF 才缓存（1285 个太大，不预下载） |
+| 训练数据 | **永不缓存**，断网时明确提示，避免看到过期组数 |
+| 更新 | 自动，下次打开即新版（`/sw.js` 设 `no-store`） |
+
+图标由 `npm run icons` 生成（`scripts/make-icons.mjs`，零依赖）。
+两个容易踩的点已经处理：iOS 会用自己的圆角蒙版裁图标，所以 `apple-touch-icon` 必须**满幅无圆角**；
+Android 的 maskable 则要把前景缩进 80% 安全区。
+
+```bash
+npm run icons                       # 重新生成 5 个尺寸的 PNG
+npm run smoke:pwa                   # 真浏览器验证 manifest / SW / 离线 / 缓存完整性（35 项）
+```
+
+> **必须 HTTPS。** Service Worker 只在 `https://` 或 `localhost` 下生效，裸 IP + HTTP 装不了离线能力。
+> 上面的反向代理配置就是为此准备的。
+
+
 ## 导出
 
 「我的 → 导出数据」里选格式与时间范围，下载的文件只包含**当前账号**的数据。
