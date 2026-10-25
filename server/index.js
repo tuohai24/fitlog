@@ -47,15 +47,46 @@ app.use('/api/feed', requireAuth, feedRouter);
 app.use('/api', (req, res) => res.status(404).json({ error: '接口不存在' }));
 
 /* ---------------- 静态资源 ---------------- */
+// 动图内容永不变化：长缓存
 app.use('/media', express.static(path.join(PUBLIC_DIR, 'media'), {
   maxAge: '365d', immutable: true, fallthrough: true,
 }));
-app.use(express.static(PUBLIC_DIR, { maxAge: '1h', extensions: ['html'] }));
+
+// Service Worker 必须每次向服务器确认。
+// 浏览器检查 SW 更新时会走 HTTP 缓存，被缓存住就等于「永远更新不了」，
+// 这是 PWA 最常见的「改了代码但手机上没变化」的原因。
+app.get('/sw.js', (req, res) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Service-Worker-Allowed', '/');
+  res.type('application/javascript');
+  res.sendFile(path.join(PUBLIC_DIR, 'sw.js'));
+});
+
+// manifest 改了图标/名字要立刻生效
+app.get('/manifest.webmanifest', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.type('application/manifest+json');
+  res.sendFile(path.join(PUBLIC_DIR, 'manifest.webmanifest'));
+});
+
+// 其余静态资源：no-cache + ETag。
+// 零构建项目没有文件名 hash，用长缓存会让部署后一段时间内
+// 「新 HTML + 旧 JS」混着跑，所以改成每次验证（未变化走 304，开销极小）。
+app.use(express.static(PUBLIC_DIR, {
+  maxAge: 0,
+  etag: true,
+  lastModified: true,
+  extensions: ['html'],
+}));
+
 // SPA 兜底（Express 5 通配符写法不同，统一用中间件处理）
 app.use((req, res, next) => {
   if (req.method !== 'GET' || req.path.startsWith('/api')) return next();
   const indexFile = path.join(PUBLIC_DIR, 'index.html');
-  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
+  if (fs.existsSync(indexFile)) {
+    res.set('Cache-Control', 'no-cache');
+    return res.sendFile(indexFile);
+  }
   res.status(404).send('前端未就绪');
 });
 

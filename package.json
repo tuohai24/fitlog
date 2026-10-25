@@ -1,6 +1,6 @@
 {
   "name": "fitlog",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "私人健身训练记录系统（动作库 + 训练记录 + 训练动态留言 + DeepSeek 计划）",
   "main": "server/index.js",
   "scripts": {
@@ -15,6 +15,8 @@
     "e2e:social": "node --env-file=.env scripts/e2e-social.mjs",
     "reset": "node scripts/reset-data.mjs",
     "shots": "node scripts/screenshots.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "smoke:pwa": "node scripts/smoke-pwa.mjs",
     "fetch:font": "node scripts/fetch-font.mjs"
   },
   "keywords": [],

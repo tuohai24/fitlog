@@ -5,14 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#f6f6f7" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="color-scheme" content="light dark" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="FitLog" />
+<meta name="application-name" content="FitLog" />
+<meta name="format-detection" content="telephone=no" />
 <meta name="description" content="私人健身训练记录 —— 动作库、组数重量记录、训练统计与 AI 训练计划" />
 <title>FitLog · 训练记录</title>
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="/icon.svg" />
+<!-- iOS 主屏幕图标：必须是 PNG 且满幅无圆角，否则系统裁圆角时会露出双层边缘 -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
@@ -20,5 +26,27 @@
   <div id="overlay-root"></div>
   <div id="toast" class="toast" role="status"></div>
   <script type="module" src="/js/app.js"></script>
+  <script>
+  // 注册 Service Worker：让 PWA 在弱网/无网时也能打开
+  if ('serviceWorker' in navigator) {
+    // 记住初始状态：首次安装时 controller 会从 null 变成 SW，
+    // 这时的 controllerchange 不该触发刷新（页面本来就是最新的）
+    var hadController = !!navigator.serviceWorker.controller;
+    var refreshing = false;
+    var loadedAt = Date.now();
+
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController || refreshing) return;
+      // 只在刚打开页面的头 3 秒内自动刷新，避免打断正在填的训练记录
+      if (Date.now() - loadedAt > 3000) return;
+      refreshing = true;
+      location.reload();
+    });
+
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () { /* 离线能力失败不该影响使用 */ });
+    });
+  }
+  </script>
 </body>
 </html>
