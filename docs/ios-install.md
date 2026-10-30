@@ -3,13 +3,13 @@
 FitLog 是 PWA，**不需要 App Store、不需要 Apple 开发者账号、不需要 TestFlight**。
 用 Safari 打开网页，加一次「主屏幕」，之后就像 App 一样用：独立图标、全屏无地址栏、断网也能打开。
 
-> 地址：**https://fit.kjsa.cn**
+> 地址：**https://fit.953555.xyz**
 
 ---
 
 ## 一、安装（30 秒）
 
-1. **用 Safari 打开** https://fit.kjsa.cn
+1. **用 Safari 打开** https://fit.953555.xyz
 2. 点底部中间的 **分享按钮**（方框 + 向上箭头）
 3. 往下滑，点 **「添加到主屏幕」**
 4. 名称会默认填好 `FitLog`，点右上角 **「添加」**
@@ -103,7 +103,7 @@ console.log(db.prepare('select id,username from users').all());
 
 99% 是用 Chrome / 微信打开后「添加到主屏幕」的——那装出来的是书签。删掉，改用 Safari 重装。
 
-如果确认是 Safari 装的还白屏：设置 → Safari → 高级 → 网站数据 → 找到 `fit.kjsa.cn` 删除，再重装。
+如果确认是 Safari 装的还白屏：设置 → Safari → 高级 → 网站数据 → 找到 `fit.953555.xyz` 删除，再重装。
 
 **Q：过一段时间又要重新登录**
 
@@ -129,7 +129,7 @@ PWA 的边界很清楚：**不能上架、不能推送、不能读健康数据�
 - Apple 开发者账号（$99/年）
 - Mac + Xcode（你有）
 - 前端要小改一处：现在的接口路径是 `/api/xxx` 的绝对路径，
-  打包成本地资源后需要改成 `https://fit.kjsa.cn/api/xxx`，否则请求会打到 WebView 自己身上
+  打包成本地资源后需要改成 `https://fit.953555.xyz/api/xxx`，否则请求会打到 WebView 自己身上
 
 **只自己用不上架的话**，不走 App Store 审核，可以绕开 4.2 那条「纯网页壳」的拒审理由，
 直接 Xcode 装到手机，或者用 TestFlight 分发给自己。

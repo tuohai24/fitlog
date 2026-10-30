@@ -2,7 +2,7 @@
  * 原生客户端（Capacitor）跨域支持。
  *
  * WebView 加载本地 assets 时 origin 是 https://localhost，而接口在
- * https://fit.kjsa.cn，属于跨域请求。会话走 Authorization: Bearer，
+ * https://fit.953555.xyz，属于跨域请求。会话走 Authorization: Bearer，
  * 不依赖 Cookie，所以这里只需要放行来源、方法和请求头。
  *
  * 白名单按 origin 精确匹配（不用 *），避免任意网页拿用户浏览器发起请求。

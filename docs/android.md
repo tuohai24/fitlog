@@ -64,7 +64,7 @@ gradle assembleRelease
 | 行为 | Web / PWA | 安卓壳 |
 | --- | --- | --- |
 | 页面来源 | 服务器 | 本地 assets（秒开，不依赖网络首屏） |
-| 接口地址 | 同源 `/api` | `https://fit.kjsa.cn/api` 绝对地址 + CORS |
+| 接口地址 | 同源 `/api` | `https://fit.953555.xyz/api` 绝对地址 + CORS |
 | 会话 | HttpOnly Cookie | `Authorization: Bearer <token>`（跨站 Cookie 会被 SameSite 拦掉） |
 | 导出文件 | 浏览器下载 | 写进应用缓存 → 拉起系统分享面板 → 「保存到文件」 |
 | Service Worker | 注册，离线可用 | 不注册（壳已经缓存了页面） |

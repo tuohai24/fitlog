@@ -4,7 +4,7 @@ const API_BASE_STORE = 'fitlog.apiBase';
 const TOKEN_STORE = 'fitlog.token';
 
 /* 原生壳里前端是本地 assets，接口在远端，必须带绝对地址 */
-const DEFAULT_API_BASE = String(window.__FITLOG_API_BASE__ || 'https://fit.kjsa.cn').replace(/\/+$/, '');
+const DEFAULT_API_BASE = String(window.__FITLOG_API_BASE__ || 'https://fit.953555.xyz').replace(/\/+$/, '');
 
 export const isNative = Boolean(
   window.__FITLOG_NATIVE__ ||

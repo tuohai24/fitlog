@@ -470,7 +470,7 @@ npm run apk        # → dist/FitLog-<版本>.apk
 `./gradlew` 的 10 秒超时在国内基本必失败，绕法是本地装一份同版本 Gradle 直接用（见 [docs/android.md](docs/android.md)）。
 
 装到手机上：把 APK 传到手机点开安装（允许「安装未知来源应用」），用网页端同一个账号登录。
-壳里默认连 `https://fit.kjsa.cn`，换成自己的域名改 `public/js/platform.js` 的 `DEFAULT_API_BASE` 后重新打包。
+壳里默认连 `https://fit.953555.xyz`，换成自己的域名改 `public/js/platform.js` 的 `DEFAULT_API_BASE` 后重新打包。
 
 和 PWA 的差别只有三处：接口走绝对地址 + CORS、会话改用 `Authorization: Bearer`（跨站 Cookie 会被 SameSite 拦掉）、
 导出文件写进应用缓存后拉起系统分享面板。`npm run smoke:native` 会在真实 Chromium 里把这三件事验一遍。
