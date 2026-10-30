@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { db, nowISO } from './db.js';
 import { requireAuth } from './auth.js';
+import { corsMiddleware } from './cors.js';
 import authRouter from './routes/auth.js';
 import usersRouter from './routes/users.js';
 import exercisesRouter from './routes/exercises.js';
@@ -23,6 +24,8 @@ const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', true);
+// 原生客户端跨域（必须在路由之前，且要先于 compression 处理预检）
+app.use(corsMiddleware());
 app.use(compression());
 app.use(express.json({ limit: '4mb' }));
 

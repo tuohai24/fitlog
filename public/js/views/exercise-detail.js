@@ -1,5 +1,6 @@
 import { esc, icon, thumb, openSheet, closeSheet, toast, todayStr, fmtNum, dateLabel } from '../core.js';
 import { api } from '../api.js';
+import { assetUrl } from '../platform.js';
 import { muscleMap, muscleLabelList } from '../muscle-map.js';
 
 /* ------------------------------------------------------------------ */
@@ -8,7 +9,7 @@ import { muscleMap, muscleLabelList } from '../muscle-map.js';
 function gifBlock(ex, cls = 'gif-hero') {
   if (ex.hasGif && ex.gif) {
     return `<div class="${cls}">
-      <img src="/media/gifs/${esc(ex.gif)}" alt="${esc(ex.zh)} 动图示范" loading="eager" decoding="async" />
+      <img src="${assetUrl(`/media/gifs/${esc(ex.gif)}`)}" alt="${esc(ex.zh)} 动图示范" loading="eager" decoding="async" />
       <span class="gif-badge">动图示范</span>
     </div>`;
   }

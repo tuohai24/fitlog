@@ -99,6 +99,7 @@
 - **后端**：Node.js 22 + Express 5
 - **数据库**：SQLite（better-sqlite3，WAL 模式）
 - **AI**：DeepSeek Chat API（服务端代理调用，Key 不出服务器）
+- **客户端**：PWA（`public/sw.js`）、微信小程序（`fitlog-mp/`）、安卓壳（Capacitor 8，`android/`），三者共用同一套 `/api`
 
 ```
 fitlog/
@@ -118,6 +119,7 @@ fitlog/
 │   ├── js/
 │   │   ├── app.js             # hash 路由 + 7 个底部标签
 │   │   ├── api.js  core.js    # 接口封装 / UI 原子件
+│   │   ├── platform.js        # Web / 安卓壳差异（接口地址、Bearer 会话、文件保存）
 │   │   ├── muscle-map.js      # 动作 → 肌群映射 + 肌肉图渲染
 │   │   ├── vendor/musclemap.js # MuscleMap 人体矢量路径数据（MIT，见文件头署名）
 │   │   ├── picker.js          # 通用动作选择器（记录页与计划编辑器共用）
@@ -137,8 +139,14 @@ fitlog/
 │   ├── test-install-env.sh    # install.sh 环境补装逻辑的离线测试（stub 掉系统命令）
 │   ├── reset-data.mjs         # 清空训练 / 计划 / 配置（保留动作库）
 │   └── fetch-font.mjs         # 补齐 PDF 导出用的中文字体
+├── scripts/build-native.mjs   # 复制 Web 资源给安卓壳（跳过 134MB 的 media）
+├── scripts/make-android-icons.mjs  # Chromium canvas 生成安卓图标与启动图（零图像依赖）
+├── scripts/build-apk.mjs      # 一键构建 APK → dist/FitLog-<版本>.apk
+├── android/                   # Capacitor 生成的安卓工程（图标、签名配置）
+├── capacitor.config.json      # 安卓壳配置（appId / webDir / scheme）
 ├── install.sh                 # 一键安装 / 更新 / 备份 / 卸载（带菜单）
 ├── docs/
+│   ├── android.md             # 安卓打包与签名说明
 │   ├── miniprogram-deploy.md  # 小程序部署教程（域名 HTTPS、白名单、提审发布、与网页端共用同一个库）
 │   └── screenshots/           # README 截图
 ├── assets/fonts/              # PDF 导出用的 Noto Sans SC（SIL OFL，11 MB）
@@ -448,6 +456,24 @@ npm run smoke:pwa                   # 真浏览器验证 manifest / SW / 离线 
 ```
 
 > **必须 HTTPS。** Service Worker 只在 `https://` 或 `localhost` 下生效，裸 IP + HTTP 装不了离线能力。
+
+## 安卓客户端（APK）
+
+同一套前端套了一层 Capacitor 壳，业务逻辑没有第二份实现。
+
+```bash
+npm install
+npm run apk        # → dist/FitLog-<版本>.apk
+```
+
+需要 JDK 21 + Android SDK（platform 36 / build-tools 36）。首次构建要拉 Gradle 与 AGP 依赖，
+`./gradlew` 的 10 秒超时在国内基本必失败，绕法是本地装一份同版本 Gradle 直接用（见 [docs/android.md](docs/android.md)）。
+
+装到手机上：把 APK 传到手机点开安装（允许「安装未知来源应用」），用网页端同一个账号登录。
+壳里默认连 `https://fit.kjsa.cn`，换成自己的域名改 `public/js/platform.js` 的 `DEFAULT_API_BASE` 后重新打包。
+
+和 PWA 的差别只有三处：接口走绝对地址 + CORS、会话改用 `Authorization: Bearer`（跨站 Cookie 会被 SameSite 拦掉）、
+导出文件写进应用缓存后拉起系统分享面板。`npm run smoke:native` 会在真实 Chromium 里把这三件事验一遍。
 > 上面的反向代理配置就是为此准备的。
 
 

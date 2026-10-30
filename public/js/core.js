@@ -1,4 +1,6 @@
 /* 通用工具：DOM、格式化、图标、Toast、Sheet */
+import { assetUrl } from './platform.js';
+
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -187,8 +189,8 @@ export function confirmSheet({ title, message, confirmText = '确定', danger = 
 /* ---------------- 图片 ---------------- */
 export function thumb(ex, cls = 'thumb') {
   if (!ex || !ex.img) return `<div class="${cls} thumb-fallback">${icon('dumbbell')}</div>`;
-  return `<img class="${cls}" src="/media/thumbs/${esc(ex.img)}" alt="${esc(ex.zh || '')}"
-    loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/icon.svg'">`;
+  return `<img class="${cls}" src="${assetUrl(`/media/thumbs/${esc(ex.img)}`)}" alt="${esc(ex.zh || '')}"
+    loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${assetUrl('/icon.svg')}'">`;
 }
 
 /* ---------------- 迷你柱状图 ---------------- */

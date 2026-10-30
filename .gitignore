@@ -17,3 +17,10 @@ data/.test-install-funcs.sh
 data/.npm-install.log
 data/.pkg-install.log
 data/.node-dl/
+
+# 安卓壳构建产物与签名材料
+dist/
+android/keystore.properties
+android/*.keystore
+android/*.jks
+android/local.properties

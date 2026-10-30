@@ -1,5 +1,6 @@
 import { $, esc, icon, toast, confirmSheet, openSheet, closeSheet } from '../core.js';
 import { api } from '../api.js';
+import { apiUrl, authHeaders, fetchCredentials, saveBlob, isNative, apiBase } from '../platform.js';
 
 const RANGES = [
   { key: 'all', label: '全部' },
@@ -144,7 +145,8 @@ export default async function meView({ el, nav }) {
           <strong style="color:var(--text)">肌肉示意图</strong>：<a href="https://github.com/Jsplice/MuscleMap" target="_blank" rel="noreferrer">MuscleMap</a>（MIT License）；
           <strong style="color:var(--text)">动作图片</strong>：© <a href="https://gymvisual.com/" target="_blank" rel="noreferrer">Gym visual</a>。
         </p>
-        <p class="muted" style="margin-top:12px">FitLog v1.1 · 多用户 · 自托管 · SQLite</p>
+        <p class="muted" style="margin-top:12px">FitLog v1.2 · 多用户 · 自托管 · SQLite</p>
+        ${isNative ? `<p class="muted" style="margin-top:6px">安卓客户端 · 服务器 ${esc(apiBase() || '同源')}</p>` : ''}
       </div>
     </section>
 
@@ -254,27 +256,34 @@ export default async function meView({ el, nav }) {
       if (range !== 'all') params.set('from', isoShift(Number(range)));
       if (settings.workoutCount === 0) note.textContent = '暂无训练记录，导出的文件里只有计划与概览。';
 
-      const res = await fetch(`/api/export?${params.toString()}`, { credentials: 'same-origin' });
+      const res = await fetch(apiUrl(`/export?${params.toString()}`), {
+        credentials: fetchCredentials,
+        headers: authHeaders(),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `导出失败 (${res.status})`);
       }
       const blob = await res.blob();
       const disp = res.headers.get('Content-Disposition') || '';
-      const name = /filename="([^"]+)"/.exec(disp)?.[1] || `fitlog.${format}`;
+      // 文件名里可能有中文，落到手机存储前先换成安全字符
+      const raw = /filename="([^"]+)"/.exec(disp)?.[1] || `fitlog.${format}`;
+      const name = raw.replace(/[\\/:*?"<>|\s]+/g, '_');
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      // Web 走浏览器下载；安卓壳写进缓存后拉起系统分享面板
+      const how = await saveBlob(blob, name);
 
       const spec = formats.formats.find(f => f.key === format);
-      note.textContent = `已导出 ${spec ? spec.label : format} · ${(blob.size / 1024).toFixed(0)} KB · ${name}`;
-      toast('导出完成');
+      const size = `${(blob.size / 1024).toFixed(0)} KB`;
+      if (how === 'share') {
+        note.textContent = `已生成 ${name}（${size}），在分享面板里选「保存到文件」即可存到手机`;
+        toast('已生成文件');
+      } else if (how === 'canceled') {
+        note.textContent = `已生成 ${name}（${size}），文件留在应用缓存里`;
+      } else {
+        note.textContent = `已导出 ${spec ? spec.label : format} · ${size} · ${name}`;
+        toast('导出完成');
+      }
     } catch (err) {
       note.textContent = err.message;
       toast(err.message);

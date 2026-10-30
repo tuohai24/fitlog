@@ -1,4 +1,6 @@
 /* 后端接口封装 */
+import { apiUrl, authHeaders, fetchCredentials, isNative, token } from './platform.js';
+
 let unauthorizedHandler = null;
 export function onUnauthorized(fn) { unauthorizedHandler = fn; }
 
@@ -6,19 +8,24 @@ async function request(path, { method = 'GET', body, timeout = 180000 } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeout);
   try {
-    const res = await fetch(`/api${path}`, {
+    const res = await fetch(apiUrl(path), {
       method,
-      credentials: 'same-origin',
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      credentials: fetchCredentials,
+      headers: authHeaders(body ? { 'Content-Type': 'application/json' } : {}),
       body: body ? JSON.stringify(body) : undefined,
       signal: ctrl.signal,
     });
-    if (res.status === 401 && unauthorizedHandler && path !== '/auth/login') {
-      unauthorizedHandler();
+    if (res.status === 401 && path !== '/auth/login') {
+      // token 失效就别留着，否则下次启动会先撞一次 401
+      token.clear();
+      if (unauthorizedHandler) unauthorizedHandler();
       throw new Error('请先登录');
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+    // 原生壳没有 Cookie，登录/注册成功后改用 Bearer 维持会话
+    if (isNative && data && data.token && (path === '/auth/login' || path === '/auth/register')) token.set(data.token);
+    if (path === '/auth/logout') token.clear();
     return data;
   } catch (e) {
     if (e.name === 'AbortError') throw new Error('请求超时，请稍后重试');

@@ -52,6 +52,7 @@
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --tab-h: 56px;
+  --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
@@ -166,7 +167,9 @@ input, textarea, select { font-family: inherit; font-size: 16px; color: var(--te
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
+  /* 安卓原生壳是 edge-to-edge，状态栏会压在内容上，用安全区把顶栏顶下去 */
+  min-height: calc(52px + var(--safe-t));
+  padding-top: var(--safe-t);
   gap: 12px;
 }
 

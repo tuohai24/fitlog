@@ -1,0 +1,12 @@
+{
+  "appId": "cn.kjsa.fitlog",
+  "appName": "FitLog",
+  "webDir": "dist/native",
+  "android": {
+    "allowMixedContent": true
+  },
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}
